@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo } from 'react';
@@ -58,7 +59,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
 
     const years = useMemo(() => {
-        const expenseYears = building.expenses.map(e => new Date(e.date).toLocaleDateString('fa-IR').substring(0, 4));
+        const expenseYears = building.expenses.map(e => new Date(e.date).toLocaleDateString('fa-IR', { year: 'numeric' }));
         return ["all", ...Array.from(new Set(expenseYears)).sort((a, b) => b.localeCompare(a)).map(String)];
     }, [building.expenses]);
 
@@ -66,7 +67,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         return building.expenses
             .filter(e => {
                 const expenseDate = new Date(e.date);
-                const yearMatches = yearFilter === "all" || expenseDate.toLocaleDateString('fa-IR').substring(0, 4) === yearFilter;
+                const yearMatches = yearFilter === "all" || expenseDate.toLocaleDateString('fa-IR', { year: 'numeric' }) === yearFilter;
                 const monthMatches = monthFilter === "all" || (expenseDate.getMonth() + 1).toString() === monthFilter;
                 return yearMatches && monthMatches;
             })
