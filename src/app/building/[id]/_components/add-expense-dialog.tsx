@@ -16,6 +16,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { Combobox } from '@/components/ui/combobox';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -23,6 +25,14 @@ interface AddExpenseDialogProps {
   onSave: (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>) => void;
   units: Unit[];
 }
+
+const suggestedExpenses = [
+    { value: 'شارژ ماهیانه', label: 'شارژ ماهیانه' },
+    { value: 'قبض آب', label: 'قبض آب' },
+    { value: 'قبض برق', label: 'قبض برق' },
+    { value: 'قبض گاز', label: 'قبض گاز' },
+    { value: 'نظافت', label: 'نظافت' },
+];
 
 export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseDialogProps) {
     const [description, setDescription] = useState('');
@@ -94,7 +104,13 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-2">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="description" className="text-right">شرح هزینه</Label>
-            <Input id="description" value={description} onChange={e => setDescription(e.target.value)} className="col-span-3"/>
+             <Combobox
+                items={suggestedExpenses}
+                value={description}
+                onChange={setDescription}
+                placeholder="انتخاب یا ورود شرح..."
+                className="col-span-3"
+              />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="totalAmount" className="text-right">مبلغ کل (تومان)</Label>
@@ -112,7 +128,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
                     <SelectItem value="unit_count">بر اساس تعداد واحدها</SelectItem>
                     <SelectItem value="occupants">بر اساس نفرات</SelectItem>
                     <SelectItem value="area">بر اساس متراژ</SelectItem>
-                    <SelectItem value="custom">اختصاصی/بدون تقسیم</SelectItem>
+                    <SelectItem value="custom">اختصاصی/سفارشی</SelectItem>
                 </SelectContent>
             </Select>
           </div>

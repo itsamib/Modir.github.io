@@ -3,31 +3,41 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Building, Unit, Expense, PaymentStatus } from '@/lib/types';
 
-const STORAGE_KEY = 'building_accountant_data';
+const STORAGE_KEY = 'building_accountant_data_v2';
+
+const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useEffect : () => {};
 
 export const useBuildingData = () => {
   const [buildings, setBuildings] = useState<Building[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     try {
       const data = localStorage.getItem(STORAGE_KEY);
       if (data) {
         setBuildings(JSON.parse(data));
+      } else {
+        // Initialize with empty array if no data
+        setBuildings([]);
       }
     } catch (error) {
       console.error("Failed to load data from localStorage", error);
+      setBuildings([]);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  const saveData = useCallback((newData: Building[]) => {
+  const saveData = useCallback((newData: Building[] | ((prev: Building[]) => Building[])) => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newData));
-      setBuildings(newData);
+        setBuildings(prevBuildings => {
+            const updatedData = typeof newData === 'function' ? newData(prevBuildings) : newData;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
+            return updatedData;
+        });
     } catch (error) {
-      console.error("Failed to save data to localStorage", error);
+        console.error("Failed to save data to localStorage", error);
     }
   }, []);
 
@@ -38,15 +48,14 @@ export const useBuildingData = () => {
       units: Array.from({ length: unitCount }, (_, i) => ({
         id: crypto.randomUUID(),
         name: `واحد ${i + 1}`,
-        area: 0,
-        occupants: 1,
+        area: 100,
+        occupants: 2,
         ownerName: `مالک واحد ${i + 1}`,
         tenantName: null,
       })),
       expenses: [],
     };
-    const updatedBuildings = [...buildings, newBuilding];
-    saveData(updatedBuildings);
+    saveData(prev => [...prev, newBuilding]);
   };
   
   const getBuildingById = useCallback((id: string) => {
@@ -55,55 +64,54 @@ export const useBuildingData = () => {
 
   const addUnitToBuilding = (buildingId: string, unit: Omit<Unit, 'id'>) => {
       const newUnit = { ...unit, id: crypto.randomUUID() };
-      const updatedBuildings = buildings.map(b => {
-          if (b.id === buildingId) {
-              return { ...b, units: [...b.units, newUnit] };
-          }
-          return b;
-      });
-      saveData(updatedBuildings);
+      saveData(prev => prev.map(b => 
+          b.id === buildingId ? { ...b, units: [...b.units, newUnit] } : b
+      ));
   };
 
   const updateUnitInBuilding = (buildingId: string, updatedUnit: Unit) => {
-      const updatedBuildings = buildings.map(b => {
+      saveData(prev => prev.map(b => {
           if (b.id === buildingId) {
               const updatedUnits = b.units.map(u => u.id === updatedUnit.id ? updatedUnit : u);
               return { ...b, units: updatedUnits };
           }
           return b;
-      });
-      saveData(updatedBuildings);
+      }));
   };
   
   const addExpenseToBuilding = (buildingId: string, expense: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>) => {
-      const building = getBuildingById(buildingId);
-      if (!building) return;
+      saveData(prev => {
+        const building = prev.find(b => b.id === buildingId);
+        if (!building) return prev;
 
-      const paymentStatus: Record<string, PaymentStatus> = {};
-      const applicableUnits = expense.applicableUnits || building.units.map(u => u.id);
-      
-      applicableUnits.forEach(unitId => {
-        paymentStatus[unitId] = 'unpaid';
+        const paymentStatus: Record<string, PaymentStatus> = {};
+        
+        // This was the bug: applicableUnits was only considered for custom, but it should apply to all
+        const applicableUnitIds = expense.distributionMethod === 'custom'
+            ? expense.applicableUnits || []
+            : building.units.map(u => u.id);
+
+        applicableUnitIds.forEach(unitId => {
+            paymentStatus[unitId] = 'unpaid';
+        });
+
+        const newExpense: Expense = {
+            ...expense,
+            id: crypto.randomUUID(),
+            buildingId,
+            paymentStatus,
+            // Ensure applicableUnits is stored correctly
+            applicableUnits: expense.distributionMethod === 'custom' ? expense.applicableUnits : undefined,
+        };
+
+        return prev.map(b => 
+            b.id === buildingId ? { ...b, expenses: [...b.expenses, newExpense] } : b
+        );
       });
-
-      const newExpense: Expense = {
-          ...expense,
-          id: crypto.randomUUID(),
-          buildingId,
-          paymentStatus,
-      };
-
-      const updatedBuildings = buildings.map(b => {
-          if (b.id === buildingId) {
-              return { ...b, expenses: [...b.expenses, newExpense] };
-          }
-          return b;
-      });
-      saveData(updatedBuildings);
   };
 
   const updateExpensePaymentStatus = (buildingId: string, expenseId: string, unitId: string, status: PaymentStatus) => {
-    const updatedBuildings = buildings.map(b => {
+    saveData(prev => prev.map(b => {
         if (b.id === buildingId) {
             const updatedExpenses = b.expenses.map(e => {
                 if (e.id === expenseId) {
@@ -115,8 +123,7 @@ export const useBuildingData = () => {
             return { ...b, expenses: updatedExpenses };
         }
         return b;
-    });
-    saveData(updatedBuildings);
+    }));
   };
 
 
