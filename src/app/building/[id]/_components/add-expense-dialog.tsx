@@ -131,7 +131,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-2">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">شرح هزینه</Label>
+            <Label htmlFor="description" className="text-right text-xs">شرح هزینه</Label>
              <Combobox
                 items={suggestedExpenses}
                 value={description}
@@ -141,7 +141,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
               />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="totalAmount" className="text-right">مبلغ کل (تومان)</Label>
+            <Label htmlFor="totalAmount" className="text-right text-xs">مبلغ کل (تومان)</Label>
             <Input 
                 id="totalAmount" 
                 type="number" 
@@ -151,7 +151,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-             <Label htmlFor="date" className="text-right">تاریخ</Label>
+             <Label htmlFor="date" className="text-right text-xs">تاریخ</Label>
              <Popover>
                 <PopoverTrigger asChild>
                     <Button
@@ -177,7 +177,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             </Popover>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="distributionMethod" className="text-right">روش تقسیم</Label>
+            <Label htmlFor="distributionMethod" className="text-right text-xs">روش تقسیم</Label>
             <Select value={distributionMethod} onValueChange={(val: Expense['distributionMethod']) => setDistributionMethod(val)}>
                 <SelectTrigger className="col-span-3"><SelectValue/></SelectTrigger>
                 <SelectContent>
@@ -190,7 +190,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right">پرداخت برای</Label>
+              <Label className="text-right text-xs">پرداخت برای</Label>
               <RadioGroup 
                 value={chargeTo} 
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
@@ -213,14 +213,14 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
 
           {distributionMethod === 'custom' && (
               <div className="col-span-4 border rounded-md p-4 space-y-3">
-                <Label className="font-semibold">واحدهای مورد نظر را انتخاب کنید:</Label>
+                <Label className="font-semibold text-xs">واحدهای مورد نظر را انتخاب کنید:</Label>
                  <div className="flex items-center space-x-2 space-x-reverse pb-2 border-b">
                     <Checkbox 
                         id="select-all-units"
                         checked={units.length > 0 && applicableUnits.length === units.length ? true : applicableUnits.length === 0 ? false : 'indeterminate'}
                         onCheckedChange={handleSelectAllUnits}
                     />
-                    <Label htmlFor="select-all-units" className="font-bold">انتخاب همه واحدها</Label>
+                    <Label htmlFor="select-all-units" className="font-bold text-xs">انتخاب همه واحدها</Label>
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                     {units.map(unit => (
@@ -230,7 +230,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                                 checked={applicableUnits.includes(unit.id)}
                                 onCheckedChange={() => handleUnitCheck(unit.id)}
                             />
-                            <Label htmlFor={`unit-${unit.id}`} className="font-normal">{unit.name}</Label>
+                            <Label htmlFor={`unit-${unit.id}`} className="font-normal text-xs">{unit.name}</Label>
                         </div>
                     ))}
                 </div>
@@ -238,7 +238,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
               </div>
           )}
            <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="paidByManager" className="text-right">پرداختی مدیر</Label>
+            <Label htmlFor="paidByManager" className="text-right text-xs">پرداختی مدیر</Label>
             <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
           </div>
 
