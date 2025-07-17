@@ -36,7 +36,7 @@ const suggestedExpenses = [
 
 export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseDialogProps) {
     const [description, setDescription] = useState('');
-    const [totalAmount, setTotalAmount] = useState(0);
+    const [totalAmount, setTotalAmount] = useState('0');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
@@ -46,7 +46,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
     useEffect(() => {
         if (isOpen) {
             setDescription('');
-            setTotalAmount(0);
+            setTotalAmount('0');
             setDate(new Date().toISOString().split('T')[0]);
             setDistributionMethod('unit_count');
             setPaidByManager(false);
@@ -65,7 +65,8 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
 
 
     const handleSave = () => {
-        if (!description.trim() || totalAmount <= 0) {
+        const amount = parseFloat(totalAmount.replace(/,/g, ''));
+        if (!description.trim() || isNaN(amount) || amount <= 0) {
             setError('شرح هزینه و مبلغ باید معتبر باشند.');
             return;
         }
@@ -76,7 +77,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
         setError('');
         onSave({
             description,
-            totalAmount,
+            totalAmount: amount,
             date,
             distributionMethod,
             paidByManager,
@@ -91,6 +92,18 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
                 : [...prev, unitId]
         );
     }
+
+    const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const rawValue = e.target.value.replace(/,/g, '');
+        const numberValue = Number(rawValue);
+        if (!isNaN(numberValue)) {
+            setTotalAmount(numberValue.toLocaleString('fa-IR', { useGrouping: true, minimumFractionDigits: 0, maximumFractionDigits: 0 }).replace(/\./g, ','));
+        } else if(rawValue === '') {
+            setTotalAmount('');
+        }
+    }
+    
+    const formattedAmount = Number(totalAmount.replace(/,/g, ''));
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -114,7 +127,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="totalAmount" className="text-right">مبلغ کل (تومان)</Label>
-            <Input id="totalAmount" type="number" value={totalAmount} onChange={e => setTotalAmount(Number(e.target.value))} className="col-span-3"/>
+            <Input id="totalAmount" type="text" value={totalAmount} onChange={handleAmountChange} className="col-span-3 text-left" dir="ltr" />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="date" className="text-right">تاریخ</Label>

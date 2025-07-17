@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useBuildingData, Building } from "@/hooks/use-building-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpensesTab } from "./expenses-tab";
@@ -18,12 +18,20 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
   const { getBuildingById, loading } = useBuildingData();
   const [building, setBuilding] = useState<Building | null | undefined>(undefined);
 
+  const fetchBuilding = useCallback(() => {
+    const foundBuilding = getBuildingById(buildingId);
+    setBuilding(foundBuilding);
+  }, [buildingId, getBuildingById]);
+
   useEffect(() => {
     if (!loading) {
-      const foundBuilding = getBuildingById(buildingId);
-      setBuilding(foundBuilding);
+      fetchBuilding();
     }
-  }, [buildingId, getBuildingById, loading]);
+  }, [loading, fetchBuilding]);
+
+  const handleDataChange = () => {
+    fetchBuilding();
+  };
 
   if (loading || building === undefined) {
     return (
@@ -69,10 +77,10 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
           <TabsTrigger value="reports">گزارش‌ها</TabsTrigger>
         </TabsList>
         <TabsContent value="expenses">
-          <ExpensesTab building={building} />
+          <ExpensesTab building={building} onDataChange={handleDataChange} />
         </TabsContent>
         <TabsContent value="units">
-          <UnitsTab building={building} />
+          <UnitsTab building={building} onDataChange={handleDataChange} />
         </TabsContent>
         <TabsContent value="reports">
             <ReportsTab building={building} />

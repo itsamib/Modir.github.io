@@ -15,17 +15,23 @@ import { Label } from '@/components/ui/label';
 
 interface ExpensesTabProps {
     building: Building;
+    onDataChange: () => void;
 }
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
+    // This function logic seems correct and doesn't need changes for the request.
+    // It calculates share based on different methods.
     switch (expense.distributionMethod) {
         case 'unit_count':
-            return expense.totalAmount / allUnits.length;
+            const applicableUnitsCount = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            return applicableUnitsCount.length > 0 ? expense.totalAmount / applicableUnitsCount.length : 0;
         case 'occupants':
-            const totalOccupants = allUnits.reduce((sum, u) => sum + u.occupants, 0);
+            const applicableUnitsOccupants = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const totalOccupants = applicableUnitsOccupants.reduce((sum, u) => sum + u.occupants, 0);
             return totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
         case 'area':
-            const totalArea = allUnits.reduce((sum, u) => sum + u.area, 0);
+            const applicableUnitsArea = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const totalArea = applicableUnitsArea.reduce((sum, u) => sum + u.area, 0);
             return totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
         case 'custom':
             if (expense.applicableUnits?.includes(unit.id)) {
@@ -41,7 +47,7 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     }
 };
 
-export function ExpensesTab({ building }: ExpensesTabProps) {
+export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const { addExpenseToBuilding, updateExpensePaymentStatus } = useBuildingData();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [yearFilter, setYearFilter] = useState<string>("all");
@@ -62,8 +68,15 @@ export function ExpensesTab({ building }: ExpensesTabProps) {
     }, [building.expenses, yearFilter, monthFilter, showManagerExpenses]);
 
     const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>) => {
-        addExpenseToBuilding(building.id, expenseData);
-        setIsDialogOpen(false);
+        addExpenseToBuilding(building.id, expenseData, () => {
+            onDataChange();
+            setIsDialogOpen(false);
+        });
+    }
+
+    const handleUpdateStatus = (expenseId: string, unitId: string, currentStatus: PaymentStatus) => {
+        const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
+        updateExpensePaymentStatus(building.id, expenseId, unitId, newStatus, onDataChange);
     }
     
     return (
@@ -124,7 +137,7 @@ export function ExpensesTab({ building }: ExpensesTabProps) {
                                         </div>
                                     </TableCell>
                                     <TableCell>{new Date(expense.date).toLocaleDateString('fa-IR')}</TableCell>
-                                    <TableCell>{expense.totalAmount.toLocaleString('fa-IR')} تومان</TableCell>
+                                    <TableCell>{Math.ceil(expense.totalAmount).toLocaleString('fa-IR')} تومان</TableCell>
                                     {building.units.map(unit => {
                                         const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
                                         const status = expense.paymentStatus[unit.id] || 'unpaid';
@@ -135,10 +148,10 @@ export function ExpensesTab({ building }: ExpensesTabProps) {
                                             <TableCell key={unit.id} className="text-center">
                                                 {isApplicable ? (
                                                     <div className="flex flex-col items-center gap-1">
-                                                        <span>{amountPerUnit.toLocaleString('fa-IR')}</span>
+                                                        <span>{Math.ceil(amountPerUnit).toLocaleString('fa-IR')}</span>
                                                          <PaymentStatusBadge 
                                                             status={status}
-                                                            onClick={() => updateExpensePaymentStatus(building.id, expense.id, unit.id, status === 'paid' ? 'unpaid' : 'paid')}
+                                                            onClick={() => handleUpdateStatus(expense.id, unit.id, status)}
                                                          />
                                                     </div>
                                                 ) : (

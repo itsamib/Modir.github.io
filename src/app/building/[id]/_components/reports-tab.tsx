@@ -63,13 +63,13 @@ export function ReportsTab({ building }: ReportsTabProps) {
                     return {
                         'شرح هزینه': expense.description,
                         'تاریخ': new Date(expense.date).toLocaleDateString('fa-IR'),
-                        'مبلغ کل هزینه': expense.totalAmount,
+                        'مبلغ کل هزینه': Math.ceil(expense.totalAmount),
                         'روش تقسیم': expense.distributionMethod,
                         'پرداخت توسط مدیر': expense.paidByManager ? 'بله' : 'خیر',
                         'واحد': unit.name,
                         'مالک': unit.ownerName,
                         'مستاجر': unit.tenantName || '-',
-                        'سهم واحد': amount,
+                        'سهم واحد': Math.ceil(amount),
                         'وضعیت پرداخت': paymentStatus === 'paid' ? 'پرداخت شده' : 'پرداخت نشده',
                     };
                 }).filter(Boolean); // Filter out null values

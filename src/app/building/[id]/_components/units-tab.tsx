@@ -10,21 +10,26 @@ import { AddUnitDialog } from './add-unit-dialog';
 
 interface UnitsTabProps {
     building: Building;
+    onDataChange: () => void;
 }
 
-export function UnitsTab({ building }: UnitsTabProps) {
+export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
     const { addUnitToBuilding, updateUnitInBuilding } = useBuildingData();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
 
     const handleSaveUnit = (unitData: Omit<Unit, 'id'>) => {
+        const callback = () => {
+            onDataChange();
+            setIsDialogOpen(false);
+            setEditingUnit(null);
+        };
+
         if (editingUnit) {
-            updateUnitInBuilding(building.id, { ...editingUnit, ...unitData });
+            updateUnitInBuilding(building.id, { ...editingUnit, ...unitData }, callback);
         } else {
-            addUnitToBuilding(building.id, unitData);
+            addUnitToBuilding(building.id, unitData, callback);
         }
-        setIsDialogOpen(false);
-        setEditingUnit(null);
     }
 
     const openAddDialog = () => {
