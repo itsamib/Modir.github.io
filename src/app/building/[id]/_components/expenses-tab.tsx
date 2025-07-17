@@ -66,7 +66,7 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
             amount = 0;
             break;
     }
-    return Math.ceil(amount / 1000) * 1000;
+    return Math.ceil(amount / 500) * 500;
 };
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
