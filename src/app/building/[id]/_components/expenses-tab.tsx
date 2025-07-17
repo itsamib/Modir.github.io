@@ -2,17 +2,27 @@
 "use client"
 
 import { useState, useMemo } from 'react';
-import { Building, Expense, Unit, useBuildingData } from "@/hooks/use-building-data"
+import { Building, Expense, Unit, useBuildingData, PaymentStatus } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck, Edit } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2 } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface ExpensesTabProps {
     building: Building;
@@ -51,9 +61,11 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
 };
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
-    const { addExpenseToBuilding, updateExpenseInBuilding, updateExpensePaymentStatus } = useBuildingData();
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const { addExpenseToBuilding, updateExpenseInBuilding, updateExpensePaymentStatus, deleteExpenseFromBuilding } = useBuildingData();
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+    const [deletingExpenseId, setDeletingExpenseId] = useState<string | null>(null);
     const [yearFilter, setYearFilter] = useState<string>("all");
     const [monthFilter, setMonthFilter] = useState<string>("all");
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
@@ -75,20 +87,20 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
             .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [building.expenses, yearFilter, monthFilter, showManagerExpenses]);
     
-    const handleOpenDialog = (expense: Expense | null) => {
+    const handleOpenAddDialog = (expense: Expense | null) => {
         setEditingExpense(expense);
-        setIsDialogOpen(true);
+        setIsAddDialogOpen(true);
     }
     
-    const handleCloseDialog = () => {
+    const handleCloseAddDialog = () => {
         setEditingExpense(null);
-        setIsDialogOpen(false);
+        setIsAddDialogOpen(false);
     }
 
     const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, expenseId?: string) => {
         const callback = () => {
             onDataChange();
-            handleCloseDialog();
+            handleCloseAddDialog();
         };
 
         if (expenseId) {
@@ -102,6 +114,21 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         const newStatus = currentStatus === 'paid' ? 'unpaid' : 'paid';
         updateExpensePaymentStatus(building.id, expenseId, unitId, newStatus, onDataChange);
     }
+
+    const openDeleteDialog = (expenseId: string) => {
+        setDeletingExpenseId(expenseId);
+        setIsDeleteDialogOpen(true);
+    }
+
+    const handleDeleteExpense = () => {
+        if (deletingExpenseId) {
+            deleteExpenseFromBuilding(building.id, deletingExpenseId, () => {
+                onDataChange();
+                setIsDeleteDialogOpen(false);
+                setDeletingExpenseId(null);
+            });
+        }
+    }
     
     return (
         <Card>
@@ -111,7 +138,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <CardTitle>لیست هزینه‌ها</CardTitle>
                         <CardDescription>هزینه‌های ثبت‌شده برای ساختمان را مشاهده و مدیریت کنید.</CardDescription>
                     </div>
-                    <Button onClick={() => handleOpenDialog(null)} className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2">
                         <PlusCircle size={20} />
                         <span>افزودن هزینه</span>
                     </Button>
@@ -186,8 +213,11 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                         )
                                     })}
                                     <TableCell className="text-center">
-                                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(expense)}>
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpenAddDialog(expense)}>
                                             <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(expense.id)} className="text-destructive hover:text-destructive">
+                                            <Trash2 className="h-4 w-4" />
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -200,12 +230,26 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                 )}
             </CardContent>
             <AddExpenseDialog
-                isOpen={isDialogOpen}
-                onClose={handleCloseDialog}
+                isOpen={isAddDialogOpen}
+                onClose={handleCloseAddDialog}
                 onSave={handleSaveExpense}
                 units={building.units}
                 expense={editingExpense}
             />
+            <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>آیا از حذف این هزینه مطمئن هستید؟</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        این عمل قابل بازگشت نیست. با حذف این هزینه، تمام اطلاعات مربوط به آن برای همیشه پاک خواهد شد.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>لغو</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteExpense} className="bg-destructive hover:bg-destructive/90">حذف</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </Card>
     )
 }

@@ -161,6 +161,16 @@ export const useBuildingData = () => {
     }), callback);
   };
 
+  const deleteExpenseFromBuilding = (buildingId: string, expenseId: string, callback?: () => void) => {
+    saveData(prev => prev.map(b => {
+        if (b.id === buildingId) {
+            const updatedExpenses = b.expenses.filter(e => e.id !== expenseId);
+            return { ...b, expenses: updatedExpenses };
+        }
+        return b;
+    }), callback);
+  };
+
 
   return { 
     buildings, 
@@ -171,7 +181,8 @@ export const useBuildingData = () => {
     updateUnitInBuilding,
     addExpenseToBuilding,
     updateExpenseInBuilding,
-    updateExpensePaymentStatus
+    updateExpensePaymentStatus,
+    deleteExpenseFromBuilding,
   };
 };
 
