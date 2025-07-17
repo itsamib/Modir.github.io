@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from 'react';
@@ -15,34 +16,43 @@ interface ReportsTabProps {
 }
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
+    let amount = 0;
     switch (expense.distributionMethod) {
         case 'unit_count': {
              const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
-             return applicableUnits.length > 0 ? expense.totalAmount / applicableUnits.length : 0;
+             amount = applicableUnits.length > 0 ? expense.totalAmount / applicableUnits.length : 0;
+             break;
         }
         case 'occupants': {
             const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
             const totalOccupants = applicableUnits.reduce((sum, u) => sum + u.occupants, 0);
-            return totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
+            amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
+            break;
         }
         case 'area': {
             const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
             const totalArea = applicableUnits.reduce((sum, u) => sum + u.area, 0);
-            return totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
+            amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
+            break;
         }
         case 'custom': {
             if (expense.applicableUnits?.includes(unit.id)) {
                  if (expense.customAmounts && expense.customAmounts[unit.id]) {
-                    return expense.customAmounts[unit.id];
+                    amount = expense.customAmounts[unit.id];
+                 } else {
+                    const numApplicable = expense.applicableUnits?.length || 1;
+                    amount = expense.totalAmount / numApplicable;
                  }
-                 const numApplicable = expense.applicableUnits?.length || 1;
-                 return expense.totalAmount / numApplicable;
+            } else {
+                amount = 0;
             }
-            return 0;
+            break;
         }
         default:
-            return 0;
+            amount = 0;
+            break;
     }
+    return Math.ceil(amount);
 };
 
 
@@ -69,7 +79,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
                         'واحد': unit.name,
                         'مالک': unit.ownerName,
                         'مستاجر': unit.tenantName || '-',
-                        'سهم واحد': Math.ceil(amount),
+                        'سهم واحد': amount,
                         'وضعیت پرداخت': paymentStatus === 'paid' ? 'پرداخت شده' : 'پرداخت نشده',
                     };
                 }).filter(Boolean); // Filter out null values
@@ -139,3 +149,5 @@ export function ReportsTab({ building }: ReportsTabProps) {
         </Card>
     )
 }
+
+    
