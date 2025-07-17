@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
+import { format } from 'date-fns-jalali';
+import { faIR } from 'date-fns/locale';
 
 interface ReportsTabProps {
     building: Building;
@@ -72,7 +74,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
                     return {
                         'شرح هزینه': expense.description,
-                        'تاریخ': new Date(expense.date).toLocaleDateString('fa-IR'),
+                        'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd', { locale: faIR }),
                         'مبلغ کل هزینه': Math.ceil(expense.totalAmount),
                         'روش تقسیم': expense.distributionMethod,
                         'پرداخت توسط مدیر': expense.paidByManager ? 'بله' : 'خیر',
@@ -149,5 +151,3 @@ export function ReportsTab({ building }: ReportsTabProps) {
         </Card>
     )
 }
-
-    

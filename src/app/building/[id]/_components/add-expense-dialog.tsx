@@ -18,6 +18,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { Combobox } from '@/components/ui/combobox';
+import { Calendar as CalendarIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns-jalali';
+import { faIR } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -38,7 +44,7 @@ const suggestedExpenses = [
 export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: AddExpenseDialogProps) {
     const [description, setDescription] = useState('');
     const [totalAmount, setTotalAmount] = useState<number | ''>('');
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [date, setDate] = useState<Date>(new Date());
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
     const [applicableUnits, setApplicableUnits] = useState<string[]>([]);
@@ -49,14 +55,14 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             if (expense) {
                 setDescription(expense.description);
                 setTotalAmount(expense.totalAmount);
-                setDate(expense.date);
+                setDate(new Date(expense.date));
                 setDistributionMethod(expense.distributionMethod);
                 setPaidByManager(expense.paidByManager);
                 setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
             } else {
                 setDescription('');
                 setTotalAmount('');
-                setDate(new Date().toISOString().split('T')[0]);
+                setDate(new Date());
                 setDistributionMethod('unit_count');
                 setPaidByManager(false);
                 setApplicableUnits(units.map(u => u.id));
@@ -85,7 +91,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
         onSave({
             description,
             totalAmount: Number(totalAmount),
-            date,
+            date: date.toISOString(),
             distributionMethod,
             paidByManager,
             applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
@@ -131,8 +137,30 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right">تاریخ</Label>
-            <Input id="date" type="date" value={date} onChange={e => setDate(e.target.value)} className="col-span-3"/>
+             <Label htmlFor="date" className="text-right">تاریخ</Label>
+             <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                    variant={"outline"}
+                    className={cn(
+                        "col-span-3 justify-start text-right font-normal",
+                        !date && "text-muted-foreground"
+                    )}
+                    >
+                    <CalendarIcon className="ml-2 h-4 w-4" />
+                    {date ? format(date, 'PPP', { locale: faIR }) : <span>یک تاریخ انتخاب کنید</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={(newDate) => newDate && setDate(newDate)}
+                        initialFocus
+                        locale={faIR}
+                    />
+                </PopoverContent>
+            </Popover>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="distributionMethod" className="text-right">روش تقسیم</Label>

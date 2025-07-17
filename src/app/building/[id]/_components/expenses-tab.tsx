@@ -23,6 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { format, getYear } from 'date-fns-jalali';
+import { faIR } from 'date-fns/locale';
 
 interface ExpensesTabProps {
     building: Building;
@@ -80,15 +82,15 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
 
     const years = useMemo(() => {
-        const expenseYears = building.expenses.map(e => new Date(e.date).toLocaleDateString('fa-IR', { year: 'numeric' }));
-        return ["all", ...Array.from(new Set(expenseYears)).sort((a, b) => b.localeCompare(a)).map(String)];
+        const expenseYears = building.expenses.map(e => getYear(new Date(e.date)).toString());
+        return ["all", ...Array.from(new Set(expenseYears)).sort((a, b) => b.localeCompare(a))];
     }, [building.expenses]);
 
     const filteredExpenses = useMemo(() => {
         return building.expenses
             .filter(e => {
                 const expenseDate = new Date(e.date);
-                const yearMatches = yearFilter === "all" || expenseDate.toLocaleDateString('fa-IR', { year: 'numeric' }) === yearFilter;
+                const yearMatches = yearFilter === "all" || getYear(expenseDate).toString() === yearFilter;
                 const monthMatches = monthFilter === "all" || (expenseDate.getMonth() + 1).toString() === monthFilter;
                 return yearMatches && monthMatches;
             })
@@ -157,14 +159,14 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     <Select value={yearFilter} onValueChange={setYearFilter}>
                         <SelectTrigger className="w-[180px]"><SelectValue placeholder="فیلتر بر اساس سال" /></SelectTrigger>
                         <SelectContent>
-                            {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? "همه سال‌ها" : y}</SelectItem>)}
+                            {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? "همه سال‌ها" : new Intl.NumberFormat('fa-IR').format(parseInt(y))}</SelectItem>)}
                         </SelectContent>
                     </Select>
                      <Select value={monthFilter} onValueChange={setMonthFilter}>
                         <SelectTrigger className="w-[180px]"><SelectValue placeholder="فیلتر بر اساس ماه" /></SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">همه ماه‌ها</SelectItem>
-                            {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{new Date(0, i).toLocaleString('fa-IR', { month: 'long' })}</SelectItem>)}
+                            {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: faIR })}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <div className="flex items-center space-x-2 space-x-reverse">
@@ -197,7 +199,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                             {expense.paidByManager && <Badge variant="secondary" className="w-fit mt-1">پرداخت توسط مدیر</Badge>}
                                         </div>
                                     </TableCell>
-                                    <TableCell>{new Date(expense.date).toLocaleDateString('fa-IR')}</TableCell>
+                                    <TableCell>{format(new Date(expense.date), 'yyyy/MM/dd', { locale: faIR })}</TableCell>
                                     <TableCell>{Math.ceil(expense.totalAmount).toLocaleString('fa-IR')} تومان</TableCell>
                                     {building.units.map(unit => {
                                         const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
@@ -262,5 +264,3 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         </Card>
     )
 }
-
-    
