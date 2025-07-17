@@ -113,7 +113,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     }
 
     const handleSelectAllUnits = (checked: boolean | 'indeterminate') => {
-        if (checked) {
+        if (checked === true) {
             setApplicableUnits(units.map(u => u.id));
         } else {
             setApplicableUnits([]);
@@ -189,24 +189,24 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             </Select>
           </div>
 
-          <div className="grid grid-cols-4 items-start gap-4">
-              <Label className="text-right pt-2">پرداخت برای</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+              <Label className="text-right">پرداخت برای</Label>
               <RadioGroup 
                 value={chargeTo} 
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
-                className="col-span-3 flex flex-col space-y-2"
+                className="col-span-3 flex items-center space-x-4 space-x-reverse"
               >
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="all" id="r-all" />
-                      <Label htmlFor="r-all">همه (ساکن فعلی)</Label>
+                      <Label htmlFor="r-all">همه</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="owner" id="r-owner" />
-                      <Label htmlFor="r-owner">فقط مالک</Label>
+                      <Label htmlFor="r-owner">مالک</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="tenant" id="r-tenant" />
-                      <Label htmlFor="r-tenant">فقط مستاجر</Label>
+                      <Label htmlFor="r-tenant">مستاجر</Label>
                   </div>
               </RadioGroup>
           </div>
@@ -217,7 +217,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                  <div className="flex items-center space-x-2 space-x-reverse pb-2 border-b mb-2">
                     <Checkbox 
                         id="select-all-units"
-                        checked={applicableUnits.length === units.length ? true : applicableUnits.length === 0 ? false : 'indeterminate'}
+                        checked={units.length > 0 && applicableUnits.length === units.length ? true : applicableUnits.length === 0 ? false : 'indeterminate'}
                         onCheckedChange={handleSelectAllUnits}
                     />
                     <Label htmlFor="select-all-units" className="font-bold">انتخاب همه واحدها</Label>
