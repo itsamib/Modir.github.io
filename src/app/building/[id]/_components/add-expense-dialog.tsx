@@ -184,7 +184,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                     <SelectItem value="unit_count">بر اساس تعداد واحدها</SelectItem>
                     <SelectItem value="occupants">بر اساس نفرات</SelectItem>
                     <SelectItem value="area">بر اساس متراژ</SelectItem>
-                    <SelectItem value="custom">اختصاصی/سفارشی</SelectItem>
+                    <SelectItem value="custom">اختصاص به واحدهای خاص</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -212,9 +212,9 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
 
           {distributionMethod === 'custom' && (
-              <div className="col-span-4 border rounded-md p-4">
-                <Label className="mb-2 block">واحدهای مورد نظر را انتخاب کنید:</Label>
-                 <div className="flex items-center space-x-2 space-x-reverse pb-2 border-b mb-2">
+              <div className="col-span-4 border rounded-md p-4 space-y-3">
+                <Label className="font-semibold">واحدهای مورد نظر را انتخاب کنید:</Label>
+                 <div className="flex items-center space-x-2 space-x-reverse pb-2 border-b">
                     <Checkbox 
                         id="select-all-units"
                         checked={units.length > 0 && applicableUnits.length === units.length ? true : applicableUnits.length === 0 ? false : 'indeterminate'}
@@ -222,7 +222,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                     />
                     <Label htmlFor="select-all-units" className="font-bold">انتخاب همه واحدها</Label>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
                     {units.map(unit => (
                         <div key={unit.id} className="flex items-center space-x-2 space-x-reverse">
                             <Checkbox 
@@ -230,11 +230,11 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                                 checked={applicableUnits.includes(unit.id)}
                                 onCheckedChange={() => handleUnitCheck(unit.id)}
                             />
-                            <Label htmlFor={`unit-${unit.id}`}>{unit.name}</Label>
+                            <Label htmlFor={`unit-${unit.id}`} className="font-normal">{unit.name}</Label>
                         </div>
                     ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-2">مبلغ کل به طور مساوی بین واحدهای انتخاب شده تقسیم می‌شود.</p>
+                <p className="text-xs text-muted-foreground pt-2">مبلغ کل به طور مساوی بین واحدهای انتخاب شده تقسیم می‌شود.</p>
               </div>
           )}
            <div className="grid grid-cols-4 items-center gap-4">
