@@ -1,4 +1,5 @@
 export type PaymentStatus = "paid" | "unpaid";
+export type ChargeTo = "all" | "owner" | "tenant";
 
 export interface Unit {
   id: string;
@@ -21,6 +22,7 @@ export interface Expense {
   // For non-custom methods, this maps unitId to its payment status
   paymentStatus: Record<string, PaymentStatus>;
   paidByManager: boolean;
+  chargeTo: ChargeTo;
   // For 'custom' distribution, indicates which units are included
   applicableUnits?: string[];
 }

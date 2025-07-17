@@ -6,11 +6,11 @@ import { Building, Expense, Unit, useBuildingData, PaymentStatus } from "@/hooks
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Home, User, Users } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import {
@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { format, getYear } from 'date-fns-jalali';
-import { faIR } from 'date-fns/locale';
+import { faIR } from 'date-fns/locale/fa-IR';
 
 interface ExpensesTabProps {
     building: Building;
@@ -33,20 +33,32 @@ interface ExpensesTabProps {
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
     let amount = 0;
+    
+    // Determine if the unit should be charged based on the chargeTo field
+    const chargeTo = expense.chargeTo || 'all';
+    if (chargeTo === 'owner' && unit.tenantName) return 0; // Don't charge tenant if it's owner-only
+    if (chargeTo === 'tenant' && !unit.tenantName) return 0; // Don't charge owner if it's tenant-only and there is no tenant
+
+    const applicableUnitsForCalculation = allUnits.filter(u => {
+        if (chargeTo === 'owner' && u.tenantName) return false;
+        if (chargeTo === 'tenant' && !u.tenantName) return false;
+        return true;
+    });
+
     switch (expense.distributionMethod) {
         case 'unit_count': {
-            const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
             amount = applicableUnits.length > 0 ? expense.totalAmount / applicableUnits.length : 0;
             break;
         }
         case 'occupants': {
-            const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
             const totalOccupants = applicableUnits.reduce((sum, u) => sum + u.occupants, 0);
             amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
             break;
         }
         case 'area': {
-            const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
             const totalArea = applicableUnits.reduce((sum, u) => sum + u.area, 0);
             amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
             break;
@@ -70,6 +82,19 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     }
     return Math.ceil(amount / 500) * 500;
 };
+
+const ChargeToBadge = ({ chargeTo }: { chargeTo: Expense['chargeTo'] }) => {
+    if (!chargeTo || chargeTo === 'all') {
+        return <Badge variant="outline" className="flex items-center gap-1"><Users size={12} /><span>همه</span></Badge>;
+    }
+    if (chargeTo === 'owner') {
+        return <Badge variant="outline" className="flex items-center gap-1"><Home size={12} /><span>مالک</span></Badge>;
+    }
+    if (chargeTo === 'tenant') {
+        return <Badge variant="outline" className="flex items-center gap-1"><User size={12} /><span>مستاجر</span></Badge>;
+    }
+    return null;
+}
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const { addExpenseToBuilding, updateExpenseInBuilding, updateExpensePaymentStatus, deleteExpenseFromBuilding } = useBuildingData();
@@ -194,12 +219,15 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                             {filteredExpenses.map(expense => (
                                 <TableRow key={expense.id}>
                                     <TableCell className="font-medium">
-                                        <div className="flex flex-col">
+                                        <div className="flex flex-col gap-1">
                                             <span>{expense.description}</span>
-                                            {expense.paidByManager && <Badge variant="secondary" className="w-fit mt-1">پرداخت توسط مدیر</Badge>}
+                                            <div className="flex items-center gap-2">
+                                                {expense.paidByManager && <Badge variant="secondary" className="w-fit">پرداخت توسط مدیر</Badge>}
+                                                <ChargeToBadge chargeTo={expense.chargeTo} />
+                                            </div>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{format(new Date(expense.date), 'd MMMM yyyy')}</TableCell>
+                                    <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
                                     <TableCell>{Math.ceil(expense.totalAmount).toLocaleString('fa-IR')} تومان</TableCell>
                                     {building.units.map(unit => {
                                         const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
@@ -209,7 +237,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
 
                                         return (
                                             <TableCell key={unit.id} className="text-center">
-                                                {isApplicable ? (
+                                                {isApplicable && amountPerUnit > 0 ? (
                                                     <div className="flex flex-col items-center gap-1">
                                                         <span>{amountPerUnit.toLocaleString('fa-IR')}</span>
                                                          <PaymentStatusBadge 

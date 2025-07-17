@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from 'react';
-import { Building, Unit, Expense, PaymentStatus } from '@/lib/types';
+import { Building, Unit, Expense, PaymentStatus, ChargeTo } from '@/lib/types';
 
 const STORAGE_KEY = 'building_accountant_data_v2';
 
@@ -115,6 +115,7 @@ export const useBuildingData = () => {
             id: crypto.randomUUID(),
             buildingId,
             paymentStatus,
+            chargeTo: expense.chargeTo || 'all',
             applicableUnits: expense.distributionMethod === 'custom' ? expense.applicableUnits : building.units.map(u => u.id),
         };
 
@@ -136,6 +137,7 @@ export const useBuildingData = () => {
                   ...e, // keep id and buildingId
                   ...expenseData,
                   paymentStatus,
+                   chargeTo: expenseData.chargeTo || 'all',
                    applicableUnits: expenseData.distributionMethod === 'custom' ? expenseData.applicableUnits : b.units.map(u => u.id),
               };
               return updatedExpense;
@@ -186,4 +188,4 @@ export const useBuildingData = () => {
   };
 };
 
-export type { Building, Unit, Expense, PaymentStatus };
+export type { Building, Unit, Expense, PaymentStatus, ChargeTo };

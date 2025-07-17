@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { Expense, Unit } from "@/hooks/use-building-data"
+import { Expense, Unit, ChargeTo } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,8 +22,9 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns-jalali';
-import { faIR } from 'date-fns/locale';
+import { faIR } from 'date-fns/locale/fa-IR';
 import { cn } from '@/lib/utils';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -47,6 +48,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     const [date, setDate] = useState<Date>(new Date());
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
+    const [chargeTo, setChargeTo] = useState<ChargeTo>('all');
     const [applicableUnits, setApplicableUnits] = useState<string[]>([]);
     const [error, setError] = useState('');
 
@@ -58,6 +60,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setDate(new Date(expense.date));
                 setDistributionMethod(expense.distributionMethod);
                 setPaidByManager(expense.paidByManager);
+                setChargeTo(expense.chargeTo || 'all');
                 setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
             } else {
                 setDescription('');
@@ -65,6 +68,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setDate(new Date());
                 setDistributionMethod('unit_count');
                 setPaidByManager(false);
+                setChargeTo('all');
                 setApplicableUnits(units.map(u => u.id));
             }
             setError('');
@@ -94,6 +98,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             date: date.toISOString(),
             distributionMethod,
             paidByManager,
+            chargeTo,
             applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
         }, expense?.id);
     };
@@ -148,7 +153,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                     )}
                     >
                     <CalendarIcon className="ml-2 h-4 w-4" />
-                    {date ? format(date, 'd MMMM yyyy') : <span>یک تاریخ انتخاب کنید</span>}
+                    {date ? format(date, 'd MMMM yyyy', { locale: faIR }) : <span>یک تاریخ انتخاب کنید</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -174,6 +179,29 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 </SelectContent>
             </Select>
           </div>
+
+          <div className="grid grid-cols-4 items-start gap-4">
+              <Label className="text-right pt-2">پرداخت برای</Label>
+              <RadioGroup 
+                value={chargeTo} 
+                onValueChange={(val: ChargeTo) => setChargeTo(val)}
+                className="col-span-3 flex flex-col space-y-2"
+              >
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="all" id="r-all" />
+                      <Label htmlFor="r-all">همه (ساکن فعلی)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="owner" id="r-owner" />
+                      <Label htmlFor="r-owner">فقط مالک</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 space-x-reverse">
+                      <RadioGroupItem value="tenant" id="r-tenant" />
+                      <Label htmlFor="r-tenant">فقط مستاجر</Label>
+                  </div>
+              </RadioGroup>
+          </div>
+
           {distributionMethod === 'custom' && (
               <div className="col-span-4 border rounded-md p-4">
                 <Label className="mb-2 block">واحدهای مورد نظر را انتخاب کنید:</Label>
