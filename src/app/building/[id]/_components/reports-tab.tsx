@@ -52,7 +52,7 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
             amount = 0;
             break;
     }
-    return Math.ceil(amount);
+    return Math.ceil(amount / 1000) * 1000;
 };
 
 
