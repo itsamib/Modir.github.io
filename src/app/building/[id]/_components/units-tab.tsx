@@ -1,0 +1,90 @@
+"use client"
+
+import { useState } from 'react';
+import { Building, Unit, useBuildingData } from "@/hooks/use-building-data"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { PlusCircle, Edit } from 'lucide-react';
+import { AddUnitDialog } from './add-unit-dialog';
+
+interface UnitsTabProps {
+    building: Building;
+}
+
+export function UnitsTab({ building }: UnitsTabProps) {
+    const { addUnitToBuilding, updateUnitInBuilding } = useBuildingData();
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+
+    const handleSaveUnit = (unitData: Omit<Unit, 'id'>) => {
+        if (editingUnit) {
+            updateUnitInBuilding(building.id, { ...editingUnit, ...unitData });
+        } else {
+            addUnitToBuilding(building.id, unitData);
+        }
+        setIsDialogOpen(false);
+        setEditingUnit(null);
+    }
+
+    const openAddDialog = () => {
+        setEditingUnit(null);
+        setIsDialogOpen(true);
+    };
+
+    const openEditDialog = (unit: Unit) => {
+        setEditingUnit(unit);
+        setIsDialogOpen(true);
+    };
+
+    return (
+        <Card>
+            <CardHeader className="flex flex-row justify-between items-center">
+                <div>
+                    <CardTitle>مدیریت واحدها</CardTitle>
+                    <CardDescription>واحد‌های ساختمان خود را مشاهده و ویرایش کنید.</CardDescription>
+                </div>
+                <Button onClick={openAddDialog} className="flex items-center gap-2">
+                    <PlusCircle size={20} />
+                    <span>افزودن واحد</span>
+                </Button>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>نام واحد</TableHead>
+                            <TableHead>متراژ (متر مربع)</TableHead>
+                            <TableHead>تعداد نفرات</TableHead>
+                            <TableHead>نام مالک</TableHead>
+                            <TableHead>نام مستاجر</TableHead>
+                            <TableHead>عملیات</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {building.units.map(unit => (
+                            <TableRow key={unit.id}>
+                                <TableCell className="font-medium">{unit.name}</TableCell>
+                                <TableCell>{unit.area}</TableCell>
+                                <TableCell>{unit.occupants}</TableCell>
+                                <TableCell>{unit.ownerName}</TableCell>
+                                <TableCell>{unit.tenantName || ' - '}</TableCell>
+                                <TableCell>
+                                    <Button variant="ghost" size="icon" onClick={() => openEditDialog(unit)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </CardContent>
+            <AddUnitDialog 
+                isOpen={isDialogOpen}
+                onClose={() => { setIsDialogOpen(false); setEditingUnit(null); }}
+                onSave={handleSaveUnit}
+                unit={editingUnit}
+            />
+        </Card>
+    )
+}
