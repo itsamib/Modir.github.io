@@ -48,7 +48,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
         if (isOpen) {
             if (expense) {
                 setDescription(expense.description);
-                setTotalAmount(expense.totalAmount.toLocaleString('fa-IR').replace(/\./g, ','));
+                setTotalAmount(Math.ceil(expense.totalAmount).toLocaleString('fa-IR'));
                 setDate(expense.date);
                 setDistributionMethod(expense.distributionMethod);
                 setPaidByManager(expense.paidByManager);
@@ -73,7 +73,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
 
 
     const handleSave = () => {
-        const amount = parseFloat(totalAmount.replace(/,/g, ''));
+        const amount = parseFloat(totalAmount.replace(/٬/g, ''));
         if (!description || !description.trim() || isNaN(amount) || amount <= 0) {
             setError('شرح هزینه و مبلغ باید معتبر باشند.');
             return;
@@ -102,10 +102,10 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     }
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const rawValue = e.target.value.replace(/,/g, '');
+        const rawValue = e.target.value.replace(/٬/g, '');
         if (rawValue === '' || /^\d+$/.test(rawValue)) {
             const numberValue = Number(rawValue);
-            setTotalAmount(rawValue === '' ? '' : numberValue.toLocaleString('fa-IR', { useGrouping: true }).replace(/\./g, ','));
+            setTotalAmount(rawValue === '' ? '' : numberValue.toLocaleString('fa-IR'));
         }
     }
     
