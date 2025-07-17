@@ -194,7 +194,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
               <RadioGroup 
                 value={chargeTo} 
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
-                className="col-span-3 flex items-center space-x-4 space-x-reverse"
+                className="col-span-3 flex items-center gap-x-4"
               >
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="all" id="r-all" />
