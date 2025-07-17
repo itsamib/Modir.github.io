@@ -25,6 +25,7 @@ import { format } from 'date-fns-jalali';
 import { faIR } from 'date-fns/locale/fa-IR';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Separator } from '@/components/ui/separator';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -109,6 +110,14 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 ? prev.filter(id => id !== unitId)
                 : [...prev, unitId]
         );
+    }
+
+    const handleSelectAllUnits = (checked: boolean | 'indeterminate') => {
+        if (checked) {
+            setApplicableUnits(units.map(u => u.id));
+        } else {
+            setApplicableUnits([]);
+        }
     }
     
   return (
@@ -205,6 +214,14 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           {distributionMethod === 'custom' && (
               <div className="col-span-4 border rounded-md p-4">
                 <Label className="mb-2 block">واحدهای مورد نظر را انتخاب کنید:</Label>
+                 <div className="flex items-center space-x-2 space-x-reverse pb-2 border-b mb-2">
+                    <Checkbox 
+                        id="select-all-units"
+                        checked={applicableUnits.length === units.length ? true : applicableUnits.length === 0 ? false : 'indeterminate'}
+                        onCheckedChange={handleSelectAllUnits}
+                    />
+                    <Label htmlFor="select-all-units" className="font-bold">انتخاب همه واحدها</Label>
+                </div>
                 <div className="grid grid-cols-2 gap-2">
                     {units.map(unit => (
                         <div key={unit.id} className="flex items-center space-x-2 space-x-reverse">
