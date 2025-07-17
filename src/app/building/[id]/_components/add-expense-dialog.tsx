@@ -198,15 +198,15 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
               >
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="all" id="r-all" />
-                      <Label htmlFor="r-all">همه</Label>
+                      <Label htmlFor="r-all" className="text-xs">همه ساکنین</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="owner" id="r-owner" />
-                      <Label htmlFor="r-owner">مالک</Label>
+                      <Label htmlFor="r-owner" className="text-xs">فقط مالک</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="tenant" id="r-tenant" />
-                      <Label htmlFor="r-tenant">مستاجر</Label>
+                      <Label htmlFor="r-tenant" className="text-xs">فقط مستاجر</Label>
                   </div>
               </RadioGroup>
           </div>

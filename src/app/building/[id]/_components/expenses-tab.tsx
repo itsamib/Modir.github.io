@@ -36,30 +36,35 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     
     // Determine if the unit should be charged based on the chargeTo field
     const chargeTo = expense.chargeTo || 'all';
-    if (chargeTo === 'owner' && unit.tenantName) return 0; // Don't charge tenant if it's owner-only
-    if (chargeTo === 'tenant' && !unit.tenantName) return 0; // Don't charge owner if it's tenant-only and there is no tenant
+    const isTenantOnlyCharge = chargeTo === 'tenant';
+    const isOwnerOnlyCharge = chargeTo === 'owner';
+    
+    // If it's a tenant-only charge, but the unit has no tenant, the unit is not applicable.
+    if (isTenantOnlyCharge && !unit.tenantName) return 0;
+    // If it's an owner-only charge for a unit that has a tenant, the charge is for the owner, not the tenant.
+    // The unit itself is still applicable for calculation base.
 
+    // Filter units that are part of the calculation base
     const applicableUnitsForCalculation = allUnits.filter(u => {
-        if (chargeTo === 'owner' && u.tenantName) return false;
-        if (chargeTo === 'tenant' && !u.tenantName) return false;
+        if (isTenantOnlyCharge && !u.tenantName) return false;
+        // For custom distribution, applicability is handled later
+        if (expense.distributionMethod === 'custom') return true;
         return true;
     });
 
     switch (expense.distributionMethod) {
         case 'unit_count': {
-            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
-            amount = applicableUnits.length > 0 ? expense.totalAmount / applicableUnits.length : 0;
+            const numApplicable = applicableUnitsForCalculation.length;
+            amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
             break;
         }
         case 'occupants': {
-            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
-            const totalOccupants = applicableUnits.reduce((sum, u) => sum + u.occupants, 0);
+            const totalOccupants = applicableUnitsForCalculation.reduce((sum, u) => sum + u.occupants, 0);
             amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
             break;
         }
         case 'area': {
-            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
-            const totalArea = applicableUnits.reduce((sum, u) => sum + u.area, 0);
+            const totalArea = applicableUnitsForCalculation.reduce((sum, u) => sum + u.area, 0);
             amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
             break;
         }
@@ -80,18 +85,25 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
             amount = 0;
             break;
     }
+
+    // After calculating the base amount, ensure it's not charged if the specific person isn't present
+    if (isTenantOnlyCharge && !unit.tenantName) return 0;
+    // For owner-only charges, the amount is calculated, but it's the owner's responsibility.
+    // The UI should show this.
+    if (amount === 0) return 0;
+    
     return Math.ceil(amount / 500) * 500;
 };
 
 const ChargeToBadge = ({ chargeTo }: { chargeTo: Expense['chargeTo'] }) => {
     if (!chargeTo || chargeTo === 'all') {
-        return <Badge variant="outline" className="flex items-center gap-1"><Users size={12} /><span>همه</span></Badge>;
+        return <Badge variant="outline" className="flex items-center gap-1"><Users size={12} /><span>همه ساکنین</span></Badge>;
     }
     if (chargeTo === 'owner') {
-        return <Badge variant="outline" className="flex items-center gap-1"><Home size={12} /><span>مالک</span></Badge>;
+        return <Badge variant="outline" className="flex items-center gap-1"><Home size={12} /><span>فقط مالک</span></Badge>;
     }
     if (chargeTo === 'tenant') {
-        return <Badge variant="outline" className="flex items-center gap-1"><User size={12} /><span>مستاجر</span></Badge>;
+        return <Badge variant="outline" className="flex items-center gap-1"><User size={12} /><span>فقط مستاجر</span></Badge>;
     }
     return null;
 }
@@ -233,11 +245,11 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                         const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
                                         const status = expense.paymentStatus[unit.id] || 'unpaid';
                                         
-                                        const isApplicable = expense.distributionMethod !== 'custom' || expense.applicableUnits?.includes(unit.id);
+                                        const isApplicable = amountPerUnit > 0;
 
                                         return (
                                             <TableCell key={unit.id} className="text-center">
-                                                {isApplicable && amountPerUnit > 0 ? (
+                                                {isApplicable ? (
                                                     <div className="flex flex-col items-center gap-1">
                                                         <span>{amountPerUnit.toLocaleString('fa-IR')}</span>
                                                          <PaymentStatusBadge 

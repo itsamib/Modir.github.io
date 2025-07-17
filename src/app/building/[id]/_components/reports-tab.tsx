@@ -18,32 +18,35 @@ interface ReportsTabProps {
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
     let amount = 0;
-     // Determine if the unit should be charged based on the chargeTo field
+    
+    // Determine if the unit should be charged based on the chargeTo field
     const chargeTo = expense.chargeTo || 'all';
-    if (chargeTo === 'owner' && unit.tenantName) return 0; // Don't charge tenant if it's owner-only
-    if (chargeTo === 'tenant' && !unit.tenantName) return 0; // Don't charge owner if it's tenant-only and there is no tenant
+    const isTenantOnlyCharge = chargeTo === 'tenant';
+    const isOwnerOnlyCharge = chargeTo === 'owner';
+    
+    // If it's a tenant-only charge, but the unit has no tenant, the unit is not applicable.
+    if (isTenantOnlyCharge && !unit.tenantName) return 0;
 
+    // Filter units that are part of the calculation base
     const applicableUnitsForCalculation = allUnits.filter(u => {
-        if (chargeTo === 'owner' && u.tenantName) return false;
-        if (chargeTo === 'tenant' && !u.tenantName) return false;
+        if (isTenantOnlyCharge && !u.tenantName) return false;
+        if (expense.distributionMethod === 'custom') return true;
         return true;
     });
 
     switch (expense.distributionMethod) {
         case 'unit_count': {
-             const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
-             amount = applicableUnits.length > 0 ? expense.totalAmount / applicableUnits.length : 0;
+             const numApplicable = applicableUnitsForCalculation.length;
+             amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
              break;
         }
         case 'occupants': {
-            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
-            const totalOccupants = applicableUnits.reduce((sum, u) => sum + u.occupants, 0);
+            const totalOccupants = applicableUnitsForCalculation.reduce((sum, u) => sum + u.occupants, 0);
             amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
             break;
         }
         case 'area': {
-            const applicableUnits = expense.applicableUnits ? applicableUnitsForCalculation.filter(u => expense.applicableUnits?.includes(u.id)) : applicableUnitsForCalculation;
-            const totalArea = applicableUnits.reduce((sum, u) => sum + u.area, 0);
+            const totalArea = applicableUnitsForCalculation.reduce((sum, u) => sum + u.area, 0);
             amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
             break;
         }
@@ -64,14 +67,19 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
             amount = 0;
             break;
     }
+
+    if (isTenantOnlyCharge && !unit.tenantName) return 0;
+
+    if (amount === 0) return 0;
+    
     return Math.ceil(amount / 500) * 500;
 };
 
 const chargeToText = (chargeTo: Expense['chargeTo']) => {
     switch(chargeTo) {
-        case 'owner': return 'مالک';
-        case 'tenant': return 'مستاجر';
-        default: return 'همه';
+        case 'owner': return 'فقط مالک';
+        case 'tenant': return 'فقط مستاجر';
+        default: return 'همه ساکنین';
     }
 }
 
@@ -84,11 +92,8 @@ export function ReportsTab({ building }: ReportsTabProps) {
         try {
             const data = building.expenses.flatMap(expense => {
                 return building.units.map(unit => {
-                    const isApplicable = expense.distributionMethod !== 'custom' || expense.applicableUnits?.includes(unit.id);
-                    if (!isApplicable) return null;
-
                     const amount = getAmountPerUnit(expense, unit, building.units);
-                    if (amount === 0) return null; // Don't include zero-amount entries
+                    if (amount === 0) return null;
                     
                     const paymentStatus = expense.paymentStatus[unit.id] || 'unpaid';
 
@@ -105,7 +110,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
                         'سهم واحد': amount,
                         'وضعیت پرداخت': paymentStatus === 'paid' ? 'پرداخت شده' : 'پرداخت نشده',
                     };
-                }).filter(Boolean); // Filter out null values
+                }).filter(Boolean);
             });
 
             if (data.length === 0) {
@@ -121,8 +126,6 @@ export function ReportsTab({ building }: ReportsTabProps) {
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "گزارش هزینه ها");
             
-            // Note: 'formulas' export type is more complex and requires careful sheet construction.
-            // This implementation primarily handles 'values'.
             XLSX.writeFile(workbook, `${building.name}-report.xlsx`);
 
             toast({
