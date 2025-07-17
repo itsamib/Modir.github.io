@@ -84,7 +84,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
 
 
     const handleSave = () => {
-        if (!description || !description.trim() || totalAmount === '' || totalAmount <= 0) {
+        if (!description.trim() || totalAmount === '' || totalAmount <= 0) {
             setError('شرح هزینه و مبلغ باید معتبر باشند.');
             return;
         }
