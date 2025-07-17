@@ -5,9 +5,6 @@ import { Building, Unit, Expense, PaymentStatus } from '@/lib/types';
 
 const STORAGE_KEY = 'building_accountant_data_v2';
 
-const useIsomorphicLayoutEffect =
-  typeof window !== 'undefined' ? useEffect : () => {};
-
 // This state is shared across all instances of the hook
 let memoryState: Building[] = [];
 const listeners: Set<(state: Building[]) => void> = new Set();
@@ -35,17 +32,14 @@ export const useBuildingData = () => {
   const [loading, setLoading] = useState(memoryState.length === 0);
 
   useEffect(() => {
-    // Component mounts, subscribe to changes
     const listener = (newState: Building[]) => {
       setBuildings(newState);
       if (loading) setLoading(false);
     };
     listeners.add(listener);
     
-    // Initial sync
     listener(memoryState);
 
-    // Component unmounts, unsubscribe
     return () => {
       listeners.delete(listener);
     };
@@ -130,6 +124,27 @@ export const useBuildingData = () => {
       }, callback);
   };
 
+  const updateExpenseInBuilding = (buildingId: string, expenseId: string, expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, callback?: () => void) => {
+      saveData(prev => prev.map(b => {
+          if (b.id !== buildingId) return b;
+          
+          const updatedExpenses = b.expenses.map(e => {
+              if (e.id !== expenseId) return e;
+              
+              const paymentStatus = e.paymentStatus; // Keep existing payment statuses
+              const updatedExpense: Expense = {
+                  ...e, // keep id and buildingId
+                  ...expenseData,
+                  paymentStatus,
+                   applicableUnits: expenseData.distributionMethod === 'custom' ? expenseData.applicableUnits : b.units.map(u => u.id),
+              };
+              return updatedExpense;
+          });
+          
+          return { ...b, expenses: updatedExpenses };
+      }), callback);
+  };
+
   const updateExpensePaymentStatus = (buildingId: string, expenseId: string, unitId: string, status: PaymentStatus, callback?: () => void) => {
     saveData(prev => prev.map(b => {
         if (b.id === buildingId) {
@@ -155,6 +170,7 @@ export const useBuildingData = () => {
     addUnitToBuilding,
     updateUnitInBuilding,
     addExpenseToBuilding,
+    updateExpenseInBuilding,
     updateExpensePaymentStatus
   };
 };

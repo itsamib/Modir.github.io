@@ -16,14 +16,14 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
 import { Combobox } from '@/components/ui/combobox';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>) => void;
+  onSave: (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, expenseId?: string) => void;
   units: Unit[];
+  expense: Expense | null;
 }
 
 const suggestedExpenses = [
@@ -34,7 +34,7 @@ const suggestedExpenses = [
     { value: 'نظافت', label: 'نظافت' },
 ];
 
-export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: AddExpenseDialogProps) {
     const [description, setDescription] = useState('');
     const [totalAmount, setTotalAmount] = useState('0');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -45,20 +45,27 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
 
     useEffect(() => {
         if (isOpen) {
-            setDescription('');
-            setTotalAmount('0');
-            setDate(new Date().toISOString().split('T')[0]);
-            setDistributionMethod('unit_count');
-            setPaidByManager(false);
-            setApplicableUnits([]);
+            if (expense) {
+                setDescription(expense.description);
+                setTotalAmount(expense.totalAmount.toLocaleString('fa-IR').replace(/\./g, ','));
+                setDate(expense.date);
+                setDistributionMethod(expense.distributionMethod);
+                setPaidByManager(expense.paidByManager);
+                setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
+            } else {
+                setDescription('');
+                setTotalAmount('0');
+                setDate(new Date().toISOString().split('T')[0]);
+                setDistributionMethod('unit_count');
+                setPaidByManager(false);
+                setApplicableUnits(units.map(u => u.id));
+            }
             setError('');
         }
-    }, [isOpen]);
+    }, [isOpen, expense, units]);
     
     useEffect(() => {
-        if (distributionMethod === 'custom') {
-            setApplicableUnits([]);
-        } else {
+        if (distributionMethod !== 'custom') {
             setApplicableUnits(units.map(u => u.id));
         }
     }, [distributionMethod, units]);
@@ -82,7 +89,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
             distributionMethod,
             paidByManager,
             applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
-        });
+        }, expense?.id);
     };
     
     const handleUnitCheck = (unitId: string) => {
@@ -103,15 +110,13 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
         }
     }
     
-    const formattedAmount = Number(totalAmount.replace(/,/g, ''));
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-headline">افزودن هزینه جدید</DialogTitle>
+          <DialogTitle className="font-headline">{expense ? 'ویرایش هزینه' : 'افزودن هزینه جدید'}</DialogTitle>
           <DialogDescription>
-            اطلاعات هزینه را برای تقسیم بین واحدها وارد کنید.
+            {expense ? 'اطلاعات هزینه را ویرایش کنید.' : 'اطلاعات هزینه را برای تقسیم بین واحدها وارد کنید.'}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto px-2">
@@ -172,7 +177,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units }: AddExpenseD
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>لغو</Button>
-          <Button type="submit" onClick={handleSave}>ذخیره هزینه</Button>
+          <Button type="submit" onClick={handleSave}>ذخیره</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

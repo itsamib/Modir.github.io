@@ -5,7 +5,7 @@ import { Building, Expense, Unit, useBuildingData } from "@/hooks/use-building-d
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
@@ -19,21 +19,22 @@ interface ExpensesTabProps {
 }
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
-    // This function logic seems correct and doesn't need changes for the request.
-    // It calculates share based on different methods.
     switch (expense.distributionMethod) {
-        case 'unit_count':
-            const applicableUnitsCount = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
-            return applicableUnitsCount.length > 0 ? expense.totalAmount / applicableUnitsCount.length : 0;
-        case 'occupants':
-            const applicableUnitsOccupants = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
-            const totalOccupants = applicableUnitsOccupants.reduce((sum, u) => sum + u.occupants, 0);
+        case 'unit_count': {
+            const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            return applicableUnits.length > 0 ? expense.totalAmount / applicableUnits.length : 0;
+        }
+        case 'occupants': {
+            const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const totalOccupants = applicableUnits.reduce((sum, u) => sum + u.occupants, 0);
             return totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
-        case 'area':
-            const applicableUnitsArea = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
-            const totalArea = applicableUnitsArea.reduce((sum, u) => sum + u.area, 0);
+        }
+        case 'area': {
+            const applicableUnits = expense.applicableUnits ? allUnits.filter(u => expense.applicableUnits?.includes(u.id)) : allUnits;
+            const totalArea = applicableUnits.reduce((sum, u) => sum + u.area, 0);
             return totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
-        case 'custom':
+        }
+        case 'custom': {
             if (expense.applicableUnits?.includes(unit.id)) {
                  if (expense.customAmounts && expense.customAmounts[unit.id]) {
                     return expense.customAmounts[unit.id];
@@ -42,36 +43,58 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
                  return expense.totalAmount / numApplicable;
             }
             return 0;
+        }
         default:
             return 0;
     }
 };
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
-    const { addExpenseToBuilding, updateExpensePaymentStatus } = useBuildingData();
+    const { addExpenseToBuilding, updateExpenseInBuilding, updateExpensePaymentStatus } = useBuildingData();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
     const [yearFilter, setYearFilter] = useState<string>("all");
     const [monthFilter, setMonthFilter] = useState<string>("all");
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
 
     const years = useMemo(() => {
-        const expenseYears = building.expenses.map(e => new Date(e.date).getFullYear());
-        return ["all", ...Array.from(new Set(expenseYears)).sort((a, b) => b - a).map(String)];
+        const expenseYears = building.expenses.map(e => new Date(e.date).toLocaleDateString('fa-IR').substring(0, 4));
+        return ["all", ...Array.from(new Set(expenseYears)).sort((a, b) => b.localeCompare(a)).map(String)];
     }, [building.expenses]);
 
     const filteredExpenses = useMemo(() => {
         return building.expenses
-            .filter(e => yearFilter === "all" || new Date(e.date).getFullYear().toString() === yearFilter)
-            .filter(e => monthFilter === "all" || (new Date(e.date).getMonth() + 1).toString() === monthFilter)
+            .filter(e => {
+                const expenseDate = new Date(e.date);
+                const yearMatches = yearFilter === "all" || expenseDate.toLocaleDateString('fa-IR').substring(0, 4) === yearFilter;
+                const monthMatches = monthFilter === "all" || (expenseDate.getMonth() + 1).toString() === monthFilter;
+                return yearMatches && monthMatches;
+            })
             .filter(e => !showManagerExpenses || e.paidByManager)
             .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [building.expenses, yearFilter, monthFilter, showManagerExpenses]);
+    
+    const handleOpenDialog = (expense: Expense | null) => {
+        setEditingExpense(expense);
+        setIsDialogOpen(true);
+    }
+    
+    const handleCloseDialog = () => {
+        setEditingExpense(null);
+        setIsDialogOpen(false);
+    }
 
-    const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>) => {
-        addExpenseToBuilding(building.id, expenseData, () => {
+    const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, expenseId?: string) => {
+        const callback = () => {
             onDataChange();
-            setIsDialogOpen(false);
-        });
+            handleCloseDialog();
+        };
+
+        if (expenseId) {
+            updateExpenseInBuilding(building.id, expenseId, expenseData, callback);
+        } else {
+            addExpenseToBuilding(building.id, expenseData, callback);
+        }
     }
 
     const handleUpdateStatus = (expenseId: string, unitId: string, currentStatus: PaymentStatus) => {
@@ -87,7 +110,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <CardTitle>لیست هزینه‌ها</CardTitle>
                         <CardDescription>هزینه‌های ثبت‌شده برای ساختمان را مشاهده و مدیریت کنید.</CardDescription>
                     </div>
-                    <Button onClick={() => setIsDialogOpen(true)} className="flex items-center gap-2">
+                    <Button onClick={() => handleOpenDialog(null)} className="flex items-center gap-2">
                         <PlusCircle size={20} />
                         <span>افزودن هزینه</span>
                     </Button>
@@ -125,6 +148,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                 {building.units.map(unit => (
                                     <TableHead key={unit.id} className="text-center">{unit.name}</TableHead>
                                 ))}
+                                <TableHead className="text-center">عملیات</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -160,6 +184,11 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                             </TableCell>
                                         )
                                     })}
+                                    <TableCell className="text-center">
+                                        <Button variant="ghost" size="icon" onClick={() => handleOpenDialog(expense)}>
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
@@ -171,9 +200,10 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
             </CardContent>
             <AddExpenseDialog
                 isOpen={isDialogOpen}
-                onClose={() => setIsDialogOpen(false)}
+                onClose={handleCloseDialog}
                 onSave={handleSaveExpense}
                 units={building.units}
+                expense={editingExpense}
             />
         </Card>
     )
