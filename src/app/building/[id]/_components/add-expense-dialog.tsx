@@ -36,7 +36,7 @@ const suggestedExpenses = [
 
 export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: AddExpenseDialogProps) {
     const [description, setDescription] = useState('');
-    const [totalAmount, setTotalAmount] = useState('0');
+    const [totalAmount, setTotalAmount] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
@@ -54,7 +54,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
             } else {
                 setDescription('');
-                setTotalAmount('0');
+                setTotalAmount('');
                 setDate(new Date().toISOString().split('T')[0]);
                 setDistributionMethod('unit_count');
                 setPaidByManager(false);
@@ -102,11 +102,13 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
 
     const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const rawValue = e.target.value.replace(/,/g, '');
+        if (rawValue === '') {
+            setTotalAmount('');
+            return;
+        }
         const numberValue = Number(rawValue);
         if (!isNaN(numberValue)) {
             setTotalAmount(numberValue.toLocaleString('fa-IR', { useGrouping: true, minimumFractionDigits: 0, maximumFractionDigits: 0 }).replace(/\./g, ','));
-        } else if(rawValue === '') {
-            setTotalAmount('');
         }
     }
     
