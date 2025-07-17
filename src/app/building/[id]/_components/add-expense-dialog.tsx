@@ -73,7 +73,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
 
     const handleSave = () => {
         const amount = parseFloat(totalAmount.replace(/,/g, ''));
-        if (!description.trim() || isNaN(amount) || amount <= 0) {
+        if (!description || !description.trim() || isNaN(amount) || amount <= 0) {
             setError('شرح هزینه و مبلغ باید معتبر باشند.');
             return;
         }
