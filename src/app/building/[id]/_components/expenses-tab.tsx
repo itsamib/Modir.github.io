@@ -199,7 +199,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                             {expense.paidByManager && <Badge variant="secondary" className="w-fit mt-1">پرداخت توسط مدیر</Badge>}
                                         </div>
                                     </TableCell>
-                                    <TableCell>{format(new Date(expense.date), 'yyyy/MM/dd', { locale: faIR })}</TableCell>
+                                    <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
                                     <TableCell>{Math.ceil(expense.totalAmount).toLocaleString('fa-IR')} تومان</TableCell>
                                     {building.units.map(unit => {
                                         const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
