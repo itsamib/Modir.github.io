@@ -1,3 +1,4 @@
+
 {
     "global": {
         "appName": "حسابدار ساختمانی",
@@ -46,7 +47,7 @@
         "cardDescription": "مجموعه اطلاعات و هزینه‌های ساختمان",
         "units": "واحد",
         "expenses": "هزینه ثبت شده",
-        "viewDashboard": "مشاهده داشبورد",
+        "viewDashboard": "ورود",
         "exportJson": "خروجی (JSON)"
     },
     "dashboard": {

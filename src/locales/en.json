@@ -1,3 +1,4 @@
+
 {
     "global": {
         "appName": "Building Accountant",
@@ -46,7 +47,7 @@
         "cardDescription": "Collection of building information and expenses",
         "units": "Units",
         "expenses": "expenses recorded",
-        "viewDashboard": "View Dashboard",
+        "viewDashboard": "Enter",
         "exportJson": "Export (JSON)"
     },
     "dashboard": {
