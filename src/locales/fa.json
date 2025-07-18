@@ -81,6 +81,7 @@
         "occupantsLabel": "تعداد نفرات",
         "ownerNameLabel": "نام مالک",
         "tenantNameLabel": "نام مستاجر",
+        "isVacantLabel": "واحد خالی است",
         "errorOwnerRequired": "نام مالک نمی‌تواند خالی باشد."
     },
     "expensesTab": {

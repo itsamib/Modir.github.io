@@ -14,6 +14,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useLanguage } from '@/context/language-context';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 
 interface AddUnitDialogProps {
   isOpen: boolean;
@@ -31,21 +33,24 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     ownerName: '',
     tenantName: ''
   });
+  const [isVacant, setIsVacant] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (isOpen) {
         if (unit) {
-            // If the name is not a translation key, it's a custom name.
             const isCustomName = !unit.name.startsWith('unitsTab.table.defaultUnitName');
+            const vacant = !unit.tenantName && unit.occupants === 0;
+            setIsVacant(vacant);
             setFormData({
                 customName: isCustomName ? unit.name : '',
                 area: unit.area,
-                occupants: unit.occupants,
+                occupants: vacant ? 0 : unit.occupants,
                 ownerName: unit.ownerName,
-                tenantName: unit.tenantName || '',
+                tenantName: vacant ? '' : (unit.tenantName || ''),
             });
         } else {
+            setIsVacant(false);
             setFormData({
                 customName: '', area: 0, occupants: 1, ownerName: '', tenantName: ''
             });
@@ -53,6 +58,23 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
         setError('');
     }
   }, [unit, isOpen]);
+
+  useEffect(() => {
+    if (isVacant) {
+        setFormData(prev => ({
+            ...prev,
+            occupants: 0,
+            tenantName: ''
+        }));
+    } else {
+        // If it was vacant and now is not, reset occupants to 1 if it was 0
+        setFormData(prev => ({
+            ...prev,
+            occupants: prev.occupants === 0 ? 1 : prev.occupants
+        }));
+    }
+  }, [isVacant]);
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value, type } = e.target;
@@ -69,13 +91,14 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     }
     setError('');
 
-    // If custom name is empty, use the default translation key. The unitNumber will be handled in useBuildingData.
     const finalName = formData.customName.trim() || 'unitsTab.table.defaultUnitName';
     
     onSave({
         ...formData,
         name: finalName,
-        tenantName: formData.tenantName.trim() || null
+        tenantName: isVacant ? null : (formData.tenantName.trim() || null),
+        occupants: isVacant ? 0 : Math.max(1, formData.occupants), // Ensure occupants is at least 1 if not vacant
+        area: formData.area
     });
   };
 
@@ -97,17 +120,25 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
             <Label htmlFor="area" className="text-right">{t('addUnitDialog.areaLabel')}</Label>
             <Input id="area" type="number" value={formData.area} onChange={handleChange} className="col-span-3"/>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="occupants" className="text-right">{t('addUnitDialog.occupantsLabel')}</Label>
-            <Input id="occupants" type="number" value={formData.occupants} onChange={handleChange} className="col-span-3"/>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
+           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="ownerName" className="text-right">{t('addUnitDialog.ownerNameLabel')}</Label>
             <Input id="ownerName" value={formData.ownerName} onChange={handleChange} className="col-span-3"/>
           </div>
+
+          <Separator />
+          
+          <div className="flex items-center space-x-2 rtl:space-x-reverse">
+            <Checkbox id="isVacant" checked={isVacant} onCheckedChange={(checked) => setIsVacant(checked as boolean)} />
+            <Label htmlFor="isVacant" className="font-medium">{t('addUnitDialog.isVacantLabel')}</Label>
+          </div>
+
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="occupants" className="text-right">{t('addUnitDialog.occupantsLabel')}</Label>
+            <Input id="occupants" type="number" value={formData.occupants} onChange={handleChange} className="col-span-3" disabled={isVacant}/>
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tenantName" className="text-right">{t('addUnitDialog.tenantNameLabel')}</Label>
-            <Input id="tenantName" value={formData.tenantName || ''} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')}/>
+            <Input id="tenantName" value={formData.tenantName || ''} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')} disabled={isVacant}/>
           </div>
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>

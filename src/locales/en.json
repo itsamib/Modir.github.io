@@ -81,6 +81,7 @@
         "occupantsLabel": "Number of Occupants",
         "ownerNameLabel": "Owner Name",
         "tenantNameLabel": "Tenant Name",
+        "isVacantLabel": "Unit is vacant",
         "errorOwnerRequired": "Owner name cannot be empty."
     },
     "expensesTab": {
