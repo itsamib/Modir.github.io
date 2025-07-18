@@ -194,19 +194,19 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
               <RadioGroup 
                 value={chargeTo} 
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
-                className="col-span-3 flex items-center gap-x-4"
+                className="col-span-3 flex items-center space-x-4 space-x-reverse"
               >
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="all" id="r-all" />
-                      <Label htmlFor="r-all" className="text-xs">همه ساکنین</Label>
+                      <Label htmlFor="r-all" className="text-xs font-normal">همه ساکنین</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="owner" id="r-owner" />
-                      <Label htmlFor="r-owner" className="text-xs">فقط مالک</Label>
+                      <Label htmlFor="r-owner" className="text-xs font-normal">فقط مالک</Label>
                   </div>
                   <div className="flex items-center space-x-2 space-x-reverse">
                       <RadioGroupItem value="tenant" id="r-tenant" />
-                      <Label htmlFor="r-tenant" className="text-xs">فقط مستاجر</Label>
+                      <Label htmlFor="r-tenant" className="text-xs font-normal">فقط مستاجر</Label>
                   </div>
               </RadioGroup>
           </div>
