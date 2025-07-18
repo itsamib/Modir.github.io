@@ -48,7 +48,7 @@ const DialogContent = React.forwardRef<
             {...props}
             >
             {children}
-            <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground rtl:left-4 rtl:right-auto">
+            <DialogPrimitive.Close className="absolute ltr:right-4 rtl:left-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
                 <X className="h-4 w-4" />
                 <span className="sr-only">Close</span>
             </DialogPrimitive.Close>
@@ -64,7 +64,7 @@ const DialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left rtl:sm:text-right",
+      "flex flex-col space-y-1.5 text-center ltr:sm:text-left rtl:sm:text-right",
       className
     )}
     {...props}
@@ -78,7 +78,7 @@ const DialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 rtl:space-x-reverse",
+      "flex flex-col-reverse sm:flex-row ltr:sm:justify-end rtl:sm:justify-start ltr:sm:space-x-2 rtl:sm:space-x-reverse",
       className
     )}
     {...props}

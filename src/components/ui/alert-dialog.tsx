@@ -56,7 +56,7 @@ const AlertDialogHeader = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col space-y-2 text-center sm:text-right rtl:sm:text-right",
+      "flex flex-col space-y-2 text-center ltr:sm:text-left rtl:sm:text-right",
       className
     )}
     {...props}
@@ -70,7 +70,7 @@ const AlertDialogFooter = ({
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 rtl:space-x-reverse",
+      "flex flex-col-reverse sm:flex-row ltr:sm:justify-end rtl:sm:justify-start ltr:sm:space-x-2 rtl:sm:space-x-reverse",
       className
     )}
     {...props}

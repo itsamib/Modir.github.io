@@ -302,7 +302,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
             {Object.values(expensesByUnit).map(({ unit, expenses, totalUnpaid }) => (
                 <AccordionItem value={unit.id} key={unit.id}>
                     <AccordionTrigger>
-                       <div className="flex justify-between w-full items-center pr-2">
+                       <div className="flex justify-between w-full items-center rtl:pr-2 ltr:pl-2">
                             <span>{getUnitName(unit)}</span>
                             {totalUnpaid > 0 ? (
                                 <Badge variant="destructive">{t('expensesTab.unpaidAmount', {amount: formatNumber(totalUnpaid)})}</Badge>
@@ -361,7 +361,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     </Button>
                 </div>
                  <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start sm:items-end">
-                     <div className="flex flex-wrap gap-4 items-center justify-end w-full">
+                     <div className="flex flex-wrap gap-4 items-center w-full justify-start rtl:justify-end">
                         <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-x-4 gap-y-2 items-center" dir={direction}>
                             <Label>{t('expensesTab.viewMode.title')}</Label>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -376,7 +376,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     </div>
 
                     {viewMode === 'byDate' && (
-                        <div className="flex flex-wrap gap-4 items-center justify-end w-full">
+                        <div className="flex flex-wrap gap-4 items-center w-full justify-start rtl:justify-end">
                             <SlidersHorizontal className="text-muted-foreground" />
                             <Select value={yearFilter} onValueChange={setYearFilter} dir={direction}>
                                 <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByYear')} /></SelectTrigger>
@@ -393,7 +393,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                             </Select>
                         </div>
                     )}
-                    <div className="flex flex-wrap gap-4 items-center justify-end w-full">
+                    <div className="flex flex-wrap gap-4 items-center justify-start rtl:justify-end w-full">
                         <div className="flex items-center space-x-2 rtl:space-x-reverse">
                             <UserCheck className="text-muted-foreground"/>
                             <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>

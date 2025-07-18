@@ -155,7 +155,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
         <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-2">
           
            <div className="grid grid-cols-4 items-start gap-4">
-                <Label className="text-right text-xs pt-3">{t('addExpenseDialog.expenseDescription')}</Label>
+                <Label className="text-right rtl:text-left text-xs pt-3">{t('addExpenseDialog.expenseDescription')}</Label>
                 <div className="col-span-3 space-y-2">
                     <RadioGroup value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)} dir={direction}>
                         <div className="grid grid-cols-2 gap-2">
@@ -179,7 +179,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="totalAmount" className="text-right text-xs">
+            <Label htmlFor="totalAmount" className="text-right rtl:text-left text-xs">
                 {distributionMethod === 'custom' ? t('addExpenseDialog.amountPerUnit') : t('addExpenseDialog.totalAmount')} {t('addExpenseDialog.currency')}
             </Label>
             <Input 
@@ -192,7 +192,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-             <Label htmlFor="date" className="text-right text-xs">{t('addExpenseDialog.date')}</Label>
+             <Label htmlFor="date" className="text-right rtl:text-left text-xs">{t('addExpenseDialog.date')}</Label>
              <Popover>
                 <PopoverTrigger asChild>
                     <Button
@@ -202,7 +202,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                         !date && "text-muted-foreground"
                     )}
                     >
-                    <CalendarIcon className="ml-2 h-4 w-4" />
+                    <CalendarIcon className="ltr:mr-2 rtl:ml-2 h-4 w-4" />
                     {date ? format(date, 'd MMMM yyyy', { locale: language === 'fa' ? faIR : enUS }) : <span>{t('addExpenseDialog.selectDate')}</span>}
                     </Button>
                 </PopoverTrigger>
@@ -219,7 +219,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
 
            <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="distributionMethod" className="text-right text-xs">{t('addExpenseDialog.distributionMethod')}</Label>
+            <Label htmlFor="distributionMethod" className="text-right rtl:text-left text-xs">{t('addExpenseDialog.distributionMethod')}</Label>
             <Select 
                 value={distributionMethod} 
                 onValueChange={(val: Expense['distributionMethod']) => setDistributionMethod(val)}
@@ -269,7 +269,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
            )}
 
           <div className="grid grid-cols-4 items-center gap-4">
-             <Label className="text-right text-xs">{t('addExpenseDialog.chargeTo')}</Label>
+             <Label className="text-right rtl:text-left text-xs">{t('addExpenseDialog.chargeTo')}</Label>
              <RadioGroup
                 value={chargeTo}
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
@@ -292,13 +292,13 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
           
            <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="paidByManager" className="text-right text-xs">{t('addExpenseDialog.paidByManager')}</Label>
+            <Label htmlFor="paidByManager" className="text-right rtl:text-left text-xs">{t('addExpenseDialog.paidByManager')}</Label>
             <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
           </div>
 
            {paidByManager && (
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="deductFromFund" className="text-right text-xs">{t('addExpenseDialog.deductFromFund')}</Label>
+              <Label htmlFor="deductFromFund" className="text-right rtl:text-left text-xs">{t('addExpenseDialog.deductFromFund')}</Label>
               <Switch id="deductFromFund" checked={deductFromFund} onCheckedChange={setDeductFromFund} className="col-span-3 justify-self-start" />
             </div>
           )}
