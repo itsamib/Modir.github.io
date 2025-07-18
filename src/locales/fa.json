@@ -43,6 +43,16 @@
         "errorNameRequired": "نام ساختمان نمی‌تواند خالی باشد.",
         "errorUnitsRequired": "تعداد واحدها باید حداقل ۱ باشد."
     },
+    "editBuildingDialog": {
+        "title": "ویرایش ساختمان",
+        "description": "نام جدید ساختمان را وارد کنید.",
+        "successTitle": "ویرایش موفق",
+        "successDesc": "نام ساختمان از '{oldName}' به '{newName}' تغییر یافت."
+    },
+    "deleteBuildingDialog": {
+        "title": "حذف ساختمان",
+        "description": "آیا از حذف ساختمان '{buildingName}' مطمئن هستید؟ تمام واحدها و هزینه‌های مرتبط با آن برای همیشه حذف خواهند شد."
+    },
     "buildingList": {
         "cardDescription": "مجموعه اطلاعات و هزینه‌های ساختمان",
         "units": "واحد",

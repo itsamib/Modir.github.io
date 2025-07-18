@@ -109,6 +109,14 @@ export const useBuildingData = () => {
     };
     saveData(prev => [...prev, newBuilding]);
   };
+
+  const updateBuilding = (buildingId: string, newName: string) => {
+    saveData(prev => prev.map(b => b.id === buildingId ? { ...b, name: newName } : b));
+  };
+
+  const deleteBuilding = (buildingId: string) => {
+    saveData(prev => prev.filter(b => b.id !== buildingId));
+  };
   
   const getBuildingById = useCallback((id: string) => {
       return memoryState.find(b => b.id === id);
@@ -272,6 +280,8 @@ export const useBuildingData = () => {
     buildings, 
     loading, 
     addBuilding,
+    updateBuilding,
+    deleteBuilding,
     getBuildingById,
     addUnitToBuilding,
     updateUnitInBuilding,

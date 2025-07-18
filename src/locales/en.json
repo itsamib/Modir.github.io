@@ -43,6 +43,16 @@
         "errorNameRequired": "Building name cannot be empty.",
         "errorUnitsRequired": "Number of units must be at least 1."
     },
+    "editBuildingDialog": {
+        "title": "Edit Building",
+        "description": "Enter the new name for the building.",
+        "successTitle": "Edit Successful",
+        "successDesc": "Building name changed from '{oldName}' to '{newName}'."
+    },
+    "deleteBuildingDialog": {
+        "title": "Delete Building",
+        "description": "Are you sure you want to delete the building '{buildingName}'? All its associated units and expenses will be permanently deleted."
+    },
     "buildingList": {
         "cardDescription": "Collection of building information and expenses",
         "units": "Units",
