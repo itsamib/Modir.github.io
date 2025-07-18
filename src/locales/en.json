@@ -17,6 +17,7 @@
         "myBuildings": "My Buildings",
         "newBuilding": "New Building",
         "importData": "Import Data",
+        "exportAll": "Export All",
         "loadingBuildings": "Loading buildings...",
         "noBuildingsFound": "No buildings found",
         "noBuildingsCTA": "Create a new building to get started.",
