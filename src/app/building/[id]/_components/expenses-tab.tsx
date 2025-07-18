@@ -24,7 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { format, getYear } from 'date-fns-jalali';
-import { faIR } from 'date-fns/locale/fa-IR';
+import { faIR } from 'date-fns-jalali/locale';
 
 interface ExpensesTabProps {
     building: Building;
@@ -288,3 +288,5 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         </Card>
     )
 }
+
+    

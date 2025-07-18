@@ -22,7 +22,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns-jalali';
-import { faIR } from 'date-fns/locale/fa-IR';
+import { faIR } from 'date-fns-jalali/locale';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
@@ -253,3 +253,5 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     </Dialog>
   );
 }
+
+    
