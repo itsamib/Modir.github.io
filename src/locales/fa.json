@@ -8,7 +8,8 @@
         "error": "خطا",
         "success": "موفقیت",
         "loading": "در حال بارگذاری...",
-        "optional": "(اختیاری)"
+        "optional": "(اختیاری)",
+        "copyright": "© تمام حقوق این برنامه متعلق به امین برزگر است."
     },
     "header": {
         "languageToggle": "FA / EN"
@@ -54,7 +55,7 @@
         "tabs": {
             "expenses": "هزینه‌ها",
             "units": "واحدها",
-            "reports": "گزارش‌ها"
+            "reports": "داشبورد"
         }
     },
     "unitsTab": {
@@ -125,8 +126,8 @@
         "addTitle": "افزودن هزینه جدید",
         "editTitle": "ویرایش هزینه",
         "description": "اطلاعات هزینه را وارد کنید.",
-        "expenseDescription": "شرح هزینه",
-        "descriptionPlaceholder": "انتخاب یا ورود شرح...",
+        "expenseDescription": "نوع هزینه",
+        "otherPlaceholder": "شرح دلخواه را وارد کنید...",
         "totalAmount": "مبلغ کل",
         "amountPerUnit": "مبلغ برای هر واحد",
         "currency": "(تومان)",
@@ -140,6 +141,13 @@
             "area": "بر اساس متراژ",
             "custom": "اختصاص به هر واحد"
         },
+        "categories": {
+            "monthly_charge": "شارژ ماهیانه",
+            "utility_bill": "قبض خدماتی",
+            "cleaning": "نظافت",
+            "repairs": "تعمیرات",
+            "other": "سایر"
+        },
         "customAllocation": {
             "description": "مبلغ وارد شده، عیناً به هر یک از واحدهای انتخاب شده اختصاص می‌یابد و تقسیم نمی‌شود.",
             "selectAll": "انتخاب همه"
@@ -151,29 +159,42 @@
             "tenant": "فقط مستاجر"
         },
         "paidByManager": "پرداختی مدیر",
+        "deductFromFund": "از صندوق کسر شود؟",
         "errorInvalid": "شرح هزینه و مبلغ باید معتبر باشند.",
         "errorCustomNoUnits": "در روش اختصاصی، حداقل یک واحد باید انتخاب شود."
     },
-    "suggestedExpenses": {
-        "monthly_charge": "شارژ ماهیانه",
-        "water_bill": "قبض آب",
-        "electricity_bill": "قبض برق",
-        "gas_bill": "قبض گاز",
-        "cleaning": "نظافت"
-    },
     "reportsTab": {
-        "title": "تهیه گزارش اکسل",
-        "description": "از اطلاعات هزینه‌ها و واحدها خروجی اکسل تهیه کنید.",
+        "noData": "هیچ داده‌ای برای خروجی گرفتن وجود ندارد.",
+        "exportSuccessTitle": "خروجی اکسل موفق",
+        "exportSuccessDesc": "فایل اکسل برای ساختمان \"{buildingName}\" با موفقیت ایجاد شد.",
+        "exportErrorTitle": "خطا در تهیه خروجی",
+        "exportErrorDesc": "مشکلی در ایجاد فایل اکسل پیش آمد. لطفا دوباره تلاش کنید.",
+        "stats": {
+            "title": "آمار ساختمان",
+            "totalUnits": "تعداد کل واحدها",
+            "totalOccupants": "تعداد کل ساکنین",
+            "vacantUnits": "واحدهای خالی"
+        },
+        "fund": {
+            "title": "وضعیت صندوق ساختمان",
+            "balance": "موجودی فعلی",
+            "inflow": "مجموع واریزی‌ها",
+            "outflow": "مجموع برداشتی‌ها"
+        },
+        "overdue": {
+            "title": "بدهی‌های معوق",
+            "description": "هزینه‌های پرداخت نشده از ماه‌های گذشته.",
+            "none": "هیچ بدهی معوقی یافت نشد. عالیه!"
+        },
+        "export": {
+            "title": "تهیه گزارش اکسل",
+            "description": "از اطلاعات هزینه‌ها و واحدها خروجی اکسل تهیه کنید."
+        },
         "exportType": "نوع خروجی",
         "exportValues": "فقط مقادیر محاسبه‌شده",
         "exportValuesDesc": "خروجی شامل داده‌های نهایی و بدون فرمول‌های اکسل خواهد بود. (توصیه شده)",
         "exportFormulas": "شامل فرمول‌های زنده اکسل (به زودی)",
         "exportFormulasDesc": "خروجی شامل فرمول‌ها خواهد بود که محاسبات را در خود اکسل انجام می‌ دهند.",
-        "exportButton": "تهیه خروجی",
-        "noData": "هیچ داده‌ای برای خروجی گرفتن وجود ندارد.",
-        "exportSuccessTitle": "خروجی اکسل موفق",
-        "exportSuccessDesc": "فایل اکسل برای ساختمان \"{buildingName}\" با موفقیت ایجاد شد.",
-        "exportErrorTitle": "خطا در تهیه خروجی",
-        "exportErrorDesc": "مشکلی در ایجاد فایل اکسل پیش آمد. لطفا دوباره تلاش کنید."
+        "exportButton": "تهیه خروجی"
     }
 }

@@ -1,16 +1,17 @@
 "use client"
 
-import { useState } from 'react';
-import { Building, Expense, Unit, ChargeTo } from "@/hooks/use-building-data"
+import { useState, useMemo } from 'react';
+import { Building, Expense, Unit } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Label } from "@/components/ui/label"
-import { Download } from 'lucide-react';
+import { Download, Users, Home, UserX, Wallet, AlertTriangle, ArrowDown, ArrowUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
-import { format } from 'date-fns-jalali';
+import { format, getMonth, getYear, startOfMonth } from 'date-fns-jalali';
 import { useLanguage } from '@/context/language-context';
+import { Separator } from '@/components/ui/separator';
 
 interface ReportsTabProps {
     building: Building;
@@ -71,15 +72,60 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
 export function ReportsTab({ building }: ReportsTabProps) {
     const [exportType, setExportType] = useState("values");
     const { toast } = useToast();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
-    const chargeToText = (chargeTo: ChargeTo) => {
-        switch(chargeTo) {
-            case 'owner': return t('expensesTab.badges.chargeToOwner');
-            case 'tenant': return t('expensesTab.badges.chargeToTenant');
-            default: return t('expensesTab.badges.chargeToAll');
-        }
+    const formatNumber = (num: number) => {
+        return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(num);
     }
+
+    const stats = useMemo(() => {
+        const totalUnits = building.units.length;
+        const totalOccupants = building.units.reduce((sum, unit) => sum + unit.occupants, 0);
+        const vacantUnits = building.units.filter(unit => !unit.tenantName).length;
+
+        const fundInflow = building.expenses
+            .filter(e => e.isBuildingCharge)
+            .reduce((sum, e) => {
+                 if (e.distributionMethod === 'custom') {
+                     return sum + (e.totalAmount * (e.applicableUnits?.length || 0));
+                 }
+                 return sum + e.totalAmount;
+            }, 0);
+
+        const fundOutflow = building.expenses
+            .filter(e => e.deductFromFund)
+            .reduce((sum, e) => sum + e.totalAmount, 0);
+
+        const fundBalance = fundInflow - fundOutflow;
+        
+        const now = new Date();
+        const startOfCurrentJalaliMonth = startOfMonth(now);
+        
+        const overdueDebts = building.units.map(unit => {
+            const unpaidAmount = building.expenses.reduce((sum, expense) => {
+                const expenseDate = new Date(expense.date);
+                const isOverdue = expenseDate < startOfCurrentJalaliMonth;
+                const isUnpaid = (expense.paymentStatus[unit.id] || 'unpaid') === 'unpaid';
+
+                if (isOverdue && isUnpaid) {
+                    const amount = getAmountPerUnit(expense, unit, building.units);
+                    return sum + amount;
+                }
+                return sum;
+            }, 0);
+
+            return {
+                unitId: unit.id,
+                unitName: unit.name,
+                amount: unpaidAmount
+            };
+        }).filter(debt => debt.amount > 0);
+
+
+        return { totalUnits, totalOccupants, vacantUnits, fundBalance, overdueDebts, fundInflow, fundOutflow };
+
+    }, [building]);
+
 
     const handleExport = () => {
         try {
@@ -101,7 +147,8 @@ export function ReportsTab({ building }: ReportsTabProps) {
                         'مبلغ کل هزینه': Math.ceil(totalExpenseAmount),
                         'روش تقسیم': expense.distributionMethod,
                         'پرداخت توسط مدیر': expense.paidByManager ? 'بله' : 'خیر',
-                        'پرداخت برای': chargeToText(expense.chargeTo),
+                        'کسر از صندوق': expense.deductFromFund ? 'بله' : 'خیر',
+                        'شارژ ساختمان': expense.isBuildingCharge ? 'بله' : 'خیر',
                         'واحد': unit.name,
                         'مالک': unit.ownerName,
                         'مستاجر': unit.tenantName || '-',
@@ -143,33 +190,122 @@ export function ReportsTab({ building }: ReportsTabProps) {
     }
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{t('reportsTab.title')}</CardTitle>
-                <CardDescription>{t('reportsTab.description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <div className="space-y-4">
-                    <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
-                    <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType}>
-                        <div className="flex items-center space-x-2 space-x-reverse">
-                            <RadioGroupItem value="values" id="r1" />
-                            <Label htmlFor="r1">{t('reportsTab.exportValues')}</Label>
+        <div className="space-y-8">
+            {/* Stats Cards */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('reportsTab.stats.title')}</CardTitle>
+                </CardHeader>
+                <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <Card className="p-4 bg-muted/50">
+                        <div className="flex items-center gap-4">
+                            <Home className="w-8 h-8 text-primary"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">{t('reportsTab.stats.totalUnits')}</p>
+                                <p className="text-2xl font-bold">{formatNumber(stats.totalUnits)}</p>
+                            </div>
                         </div>
-                         <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportValuesDesc')}</p>
-                        <div className="flex items-center space-x-2 space-x-reverse">
-                            <RadioGroupItem value="formulas" id="r2" disabled />
-                            <Label htmlFor="r2">{t('reportsTab.exportFormulas')}</Label>
+                    </Card>
+                     <Card className="p-4 bg-muted/50">
+                        <div className="flex items-center gap-4">
+                            <Users className="w-8 h-8 text-primary"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">{t('reportsTab.stats.totalOccupants')}</p>
+                                <p className="text-2xl font-bold">{formatNumber(stats.totalOccupants)}</p>
+                            </div>
                         </div>
-                        <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportFormulasDesc')}</p>
+                    </Card>
+                     <Card className="p-4 bg-muted/50">
+                        <div className="flex items-center gap-4">
+                            <UserX className="w-8 h-8 text-primary"/>
+                            <div>
+                                <p className="text-sm text-muted-foreground">{t('reportsTab.stats.vacantUnits')}</p>
+                                <p className="text-2xl font-bold">{formatNumber(stats.vacantUnits)}</p>
+                            </div>
+                        </div>
+                    </Card>
+                </CardContent>
+            </Card>
 
-                    </RadioGroup>
-                </div>
-                <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2">
-                    <Download size={20}/>
-                    <span>{t('reportsTab.exportButton')}</span>
-                </Button>
-            </CardContent>
-        </Card>
+            {/* Fund Status */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('reportsTab.fund.title')}</CardTitle>
+                </CardHeader>
+                 <CardContent className="space-y-4">
+                    <div className="flex items-center justify-center p-6 rounded-lg bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
+                        <div className="text-center">
+                            <p className="font-semibold">{t('reportsTab.fund.balance')}</p>
+                            <p className="text-4xl font-bold tracking-tight">{formatNumber(stats.fundBalance)} {t('addExpenseDialog.currency')}</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                         <div className="p-3 bg-green-100 dark:bg-green-900/50 rounded-lg">
+                            <p className="text-sm text-green-600 dark:text-green-400 font-semibold flex items-center justify-center gap-2"><ArrowDown size={16}/> {t('reportsTab.fund.inflow')}</p>
+                            <p className="font-bold">{formatNumber(stats.fundInflow)}</p>
+                         </div>
+                         <div className="p-3 bg-red-100 dark:bg-red-900/50 rounded-lg">
+                            <p className="text-sm text-red-600 dark:text-red-400 font-semibold flex items-center justify-center gap-2"><ArrowUp size={16}/> {t('reportsTab.fund.outflow')}</p>
+                            <p className="font-bold">{formatNumber(stats.fundOutflow)}</p>
+                         </div>
+                    </div>
+                 </CardContent>
+            </Card>
+
+             {/* Overdue Debts */}
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <AlertTriangle className="text-destructive"/>
+                        {t('reportsTab.overdue.title')}
+                    </CardTitle>
+                    <CardDescription>{t('reportsTab.overdue.description')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {stats.overdueDebts.length > 0 ? (
+                        <ul className="space-y-2">
+                           {stats.overdueDebts.map(debt => (
+                               <li key={debt.unitId} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                                   <span className="font-medium">{debt.unitName}</span>
+                                   <span className="font-semibold text-destructive">{formatNumber(debt.amount)} {t('addExpenseDialog.currency')}</span>
+                               </li>
+                           ))}
+                        </ul>
+                    ) : (
+                        <p className="text-center text-muted-foreground py-4">{t('reportsTab.overdue.none')}</p>
+                    )}
+                </CardContent>
+            </Card>
+
+            {/* Export section */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('reportsTab.export.title')}</CardTitle>
+                    <CardDescription>{t('reportsTab.export.description')}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                        <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
+                        <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType}>
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                                <RadioGroupItem value="values" id="r1" />
+                                <Label htmlFor="r1">{t('reportsTab.exportValues')}</Label>
+                            </div>
+                            <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportValuesDesc')}</p>
+                            <div className="flex items-center space-x-2 space-x-reverse">
+                                <RadioGroupItem value="formulas" id="r2" disabled />
+                                <Label htmlFor="r2">{t('reportsTab.exportFormulas')}</Label>
+                            </div>
+                            <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportFormulasDesc')}</p>
+
+                        </RadioGroup>
+                    </div>
+                    <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2">
+                        <Download size={20}/>
+                        <span>{t('reportsTab.exportButton')}</span>
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
     )
 }

@@ -17,14 +17,14 @@ export interface Expense {
   totalAmount: number;
   date: string; // ISO string
   distributionMethod: "unit_count" | "occupants" | "area" | "custom";
-  // For 'custom' distribution, this maps unitId to a specific amount
-  customAmounts?: Record<string, number>; 
-  // For non-custom methods, this maps unitId to its payment status
   paymentStatus: Record<string, PaymentStatus>;
   paidByManager: boolean;
   chargeTo: ChargeTo;
   // For 'custom' distribution, indicates which units are included
   applicableUnits?: string[];
+  // New fields for fund management
+  isBuildingCharge?: boolean; // True if this expense is a contribution to the fund (e.g., monthly charge)
+  deductFromFund?: boolean;   // True if this manager-paid expense should be deducted from the fund
 }
 
 export interface Building {

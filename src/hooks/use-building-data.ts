@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Building, Unit, Expense, PaymentStatus, ChargeTo } from '@/lib/types';
 
-const STORAGE_KEY = 'building_accountant_data_v2';
+const STORAGE_KEY = 'building_accountant_data_v3'; // Version updated for new data structure
 
 // This state is shared across all instances of the hook
 let memoryState: Building[] = [];
@@ -18,9 +18,29 @@ const loadInitialData = () => {
     if (typeof window !== 'undefined' && memoryState.length === 0) {
         try {
             const data = localStorage.getItem(STORAGE_KEY);
-            memoryState = data ? JSON.parse(data) : [];
+            if (data) {
+                memoryState = JSON.parse(data);
+            } else {
+                // Try to load from old key and migrate
+                const oldData = localStorage.getItem('building_accountant_data_v2');
+                if (oldData) {
+                    const parsedOldData: Building[] = JSON.parse(oldData);
+                    memoryState = parsedOldData.map(building => ({
+                        ...building,
+                        expenses: building.expenses.map(expense => ({
+                            ...expense,
+                            isBuildingCharge: expense.description.includes("شارژ") || expense.description.toLowerCase().includes("charge"),
+                            deductFromFund: false,
+                        }))
+                    }));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryState));
+                    localStorage.removeItem('building_accountant_data_v2');
+                } else {
+                    memoryState = [];
+                }
+            }
         } catch (error) {
-            console.error("Failed to load data from localStorage", error);
+            console.error("Failed to load or migrate data from localStorage", error);
             memoryState = [];
         }
     }
@@ -39,8 +59,7 @@ export const useBuildingData = () => {
     };
     listeners.add(listener);
     
-    // Initial load check
-    if(memoryState.length > 0) {
+    if(memoryState.length > 0 || localStorage.getItem(STORAGE_KEY)) {
         setLoading(false);
     }
     
@@ -123,6 +142,8 @@ export const useBuildingData = () => {
             paymentStatus,
             chargeTo: expense.chargeTo || 'all',
             applicableUnits: expense.distributionMethod === 'custom' ? expense.applicableUnits : building.units.map(u => u.id),
+            isBuildingCharge: expense.isBuildingCharge || false,
+            deductFromFund: expense.deductFromFund || false,
         };
 
         return prev.map(b => 
@@ -145,6 +166,8 @@ export const useBuildingData = () => {
                   paymentStatus,
                    chargeTo: expenseData.chargeTo || 'all',
                    applicableUnits: expenseData.distributionMethod === 'custom' ? expenseData.applicableUnits : b.units.map(u => u.id),
+                   isBuildingCharge: expenseData.isBuildingCharge || false,
+                   deductFromFund: expenseData.deductFromFund || false,
               };
               return updatedExpense;
           });

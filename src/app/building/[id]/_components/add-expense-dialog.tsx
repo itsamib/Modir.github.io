@@ -16,7 +16,6 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
-import { Combobox } from '@/components/ui/combobox';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -26,6 +25,8 @@ import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
+
+type ExpenseCategory = 'monthly_charge' | 'utility_bill' | 'cleaning' | 'repairs' | 'other';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -39,19 +40,21 @@ interface AddExpenseDialogProps {
 export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: AddExpenseDialogProps) {
     const { t, language, direction } = useLanguage();
     
-    const suggestedExpenses = useMemo(() => [
-        { value: t('suggestedExpenses.monthly_charge'), label: t('suggestedExpenses.monthly_charge') },
-        { value: t('suggestedExpenses.water_bill'), label: t('suggestedExpenses.water_bill') },
-        { value: t('suggestedExpenses.electricity_bill'), label: t('suggestedExpenses.electricity_bill') },
-        { value: t('suggestedExpenses.gas_bill'), label: t('suggestedExpenses.gas_bill') },
-        { value: t('suggestedExpenses.cleaning'), label: t('suggestedExpenses.cleaning') },
+    const expenseCategories = useMemo(() => [
+        { value: 'monthly_charge', label: t('addExpenseDialog.categories.monthly_charge') },
+        { value: 'utility_bill', label: t('addExpenseDialog.categories.utility_bill') },
+        { value: 'cleaning', label: t('addExpenseDialog.categories.cleaning') },
+        { value: 'repairs', label: t('addExpenseDialog.categories.repairs') },
+        { value: 'other', label: t('addExpenseDialog.categories.other') },
     ], [t]);
 
     const [description, setDescription] = useState('');
+    const [category, setCategory] = useState<ExpenseCategory>('monthly_charge');
     const [totalAmount, setTotalAmount] = useState<number | ''>('');
     const [date, setDate] = useState<Date>(new Date());
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
+    const [deductFromFund, setDeductFromFund] = useState(false);
     const [chargeTo, setChargeTo] = useState<ChargeTo>('all');
     const [applicableUnits, setApplicableUnits] = useState<string[]>([]);
     const [error, setError] = useState('');
@@ -59,26 +62,43 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     useEffect(() => {
         if (isOpen) {
             if (expense) {
-                setDescription(expense.description);
+                const foundCategory = expenseCategories.find(c => c.label === expense.description);
+                if (foundCategory) {
+                    setCategory(foundCategory.value as ExpenseCategory);
+                    setDescription('');
+                } else {
+                    setCategory('other');
+                    setDescription(expense.description);
+                }
                 setTotalAmount(expense.totalAmount);
                 setDate(new Date(expense.date));
                 setDistributionMethod(expense.distributionMethod);
                 setPaidByManager(expense.paidByManager);
+                setDeductFromFund(expense.deductFromFund || false);
                 setChargeTo(expense.chargeTo || 'all');
                 setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
             } else {
+                setCategory('monthly_charge');
                 setDescription('');
                 setTotalAmount('');
                 setDate(new Date());
                 setDistributionMethod('unit_count');
                 setPaidByManager(false);
+                setDeductFromFund(false);
                 setChargeTo('all');
                 setApplicableUnits(units.map(u => u.id));
             }
             setError('');
         }
-    }, [isOpen, expense, units]);
+    }, [isOpen, expense, units, expenseCategories]);
     
+    useEffect(() => {
+        // If manager isn't paying, it can't be deducted from the fund.
+        if (!paidByManager) {
+            setDeductFromFund(false);
+        }
+    }, [paidByManager]);
+
     const handleUnitSelection = (unitId: string, checked: boolean) => {
         setApplicableUnits(prev => 
             checked ? [...prev, unitId] : prev.filter(id => id !== unitId)
@@ -90,7 +110,9 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     };
 
     const handleSave = () => {
-        if (!description.trim() || totalAmount === '' || totalAmount <= 0) {
+        const finalDescription = category === 'other' ? description.trim() : expenseCategories.find(c => c.value === category)?.label || '';
+
+        if (!finalDescription || totalAmount === '' || totalAmount <= 0) {
             setError(t('addExpenseDialog.errorInvalid'));
             return;
         }
@@ -99,14 +121,19 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             return;
         }
         setError('');
+        
+        const isBuildingCharge = category === 'monthly_charge';
+
         onSave({
-            description,
+            description: finalDescription,
             totalAmount: Number(totalAmount),
             date: date.toISOString(),
             distributionMethod,
             paidByManager,
             chargeTo,
             applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
+            isBuildingCharge,
+            deductFromFund: paidByManager ? deductFromFund : false,
         }, expense?.id);
     };
     
@@ -121,16 +148,29 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
         </DialogHeader>
         <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-2">
           
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right text-xs">{t('addExpenseDialog.expenseDescription')}</Label>
-             <Combobox
-                items={suggestedExpenses}
-                value={description}
-                onChange={setDescription}
-                placeholder={t('addExpenseDialog.descriptionPlaceholder')}
-                className="col-span-3"
-              />
-          </div>
+           <div className="grid grid-cols-4 items-start gap-4">
+                <Label className="text-right text-xs pt-3">{t('addExpenseDialog.expenseDescription')}</Label>
+                <div className="col-span-3 space-y-2">
+                    <RadioGroup value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)} dir={direction}>
+                        <div className="grid grid-cols-2 gap-2">
+                        {expenseCategories.map(cat => (
+                            <div key={cat.value} className="flex items-center space-x-2 rtl:space-x-reverse">
+                                <RadioGroupItem value={cat.value} id={`cat-${cat.value}`} />
+                                <Label htmlFor={`cat-${cat.value}`} className="font-normal text-xs">{cat.label}</Label>
+                            </div>
+                        ))}
+                        </div>
+                    </RadioGroup>
+                    {category === 'other' && (
+                        <Input 
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder={t('addExpenseDialog.otherPlaceholder')}
+                            className="mt-2"
+                        />
+                    )}
+                </div>
+            </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="totalAmount" className="text-right text-xs">
@@ -249,6 +289,14 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             <Label htmlFor="paidByManager" className="text-right text-xs">{t('addExpenseDialog.paidByManager')}</Label>
             <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
           </div>
+
+           {paidByManager && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="deductFromFund" className="text-right text-xs">{t('addExpenseDialog.deductFromFund')}</Label>
+              <Switch id="deductFromFund" checked={deductFromFund} onCheckedChange={setDeductFromFund} className="col-span-3 justify-self-start" />
+            </div>
+          )}
+
 
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>

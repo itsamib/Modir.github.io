@@ -8,7 +8,8 @@
         "error": "Error",
         "success": "Success",
         "loading": "Loading...",
-        "optional": "(Optional)"
+        "optional": "(Optional)",
+        "copyright": "© All rights for this application are reserved for Amin Barzegar."
     },
     "header": {
         "languageToggle": "FA / EN"
@@ -54,7 +55,7 @@
         "tabs": {
             "expenses": "Expenses",
             "units": "Units",
-            "reports": "Reports"
+            "reports": "Dashboard"
         }
     },
     "unitsTab": {
@@ -126,7 +127,7 @@
         "editTitle": "Edit Expense",
         "description": "Enter the expense information.",
         "expenseDescription": "Expense Description",
-        "descriptionPlaceholder": "Select or enter description...",
+        "otherPlaceholder": "Enter custom description...",
         "totalAmount": "Total Amount",
         "amountPerUnit": "Amount Per Unit",
         "currency": "(USD)",
@@ -140,6 +141,13 @@
             "area": "By area",
             "custom": "Assign to each unit"
         },
+        "categories": {
+            "monthly_charge": "Monthly Charge",
+            "utility_bill": "Utility Bill",
+            "cleaning": "Cleaning",
+            "repairs": "Repairs",
+            "other": "Other"
+        },
         "customAllocation": {
             "description": "The entered amount is assigned to each selected unit as is, without division.",
             "selectAll": "Select All"
@@ -151,29 +159,42 @@
             "tenant": "Tenant Only"
         },
         "paidByManager": "Paid by Manager",
+        "deductFromFund": "Deduct from Fund?",
         "errorInvalid": "Description and amount must be valid.",
         "errorCustomNoUnits": "In custom method, at least one unit must be selected."
     },
-    "suggestedExpenses": {
-        "monthly_charge": "Monthly Charge",
-        "water_bill": "Water Bill",
-        "electricity_bill": "Electricity Bill",
-        "gas_bill": "Gas Bill",
-        "cleaning": "Cleaning"
-    },
     "reportsTab": {
-        "title": "Generate Excel Report",
-        "description": "Export expense and unit data to an Excel file.",
+        "noData": "There is no data to export.",
+        "exportSuccessTitle": "Excel Export Successful",
+        "exportSuccessDesc": "Excel file for building \"{buildingName}\" was created successfully.",
+        "exportErrorTitle": "Export Error",
+        "exportErrorDesc": "There was a problem creating the Excel file. Please try again.",
+        "stats": {
+            "title": "Building Statistics",
+            "totalUnits": "Total Units",
+            "totalOccupants": "Total Occupants",
+            "vacantUnits": "Vacant Units"
+        },
+        "fund": {
+            "title": "Building Fund Status",
+            "balance": "Current Balance",
+            "inflow": "Total Inflow",
+            "outflow": "Total Outflow"
+        },
+        "overdue": {
+            "title": "Overdue Debts",
+            "description": "Unpaid expenses from previous months.",
+            "none": "No overdue debts found. Great job!"
+        },
+        "export": {
+            "title": "Generate Excel Report",
+            "description": "Export expense and unit data to an Excel file."
+        },
         "exportType": "Export Type",
         "exportValues": "Calculated values only",
         "exportValuesDesc": "The output will contain final data without Excel formulas. (Recommended)",
         "exportFormulas": "Include live Excel formulas (Coming soon)",
         "exportFormulasDesc": "The output will include formulas that perform calculations within Excel itself.",
-        "exportButton": "Generate Export",
-        "noData": "There is no data to export.",
-        "exportSuccessTitle": "Excel Export Successful",
-        "exportSuccessDesc": "Excel file for building \"{buildingName}\" was created successfully.",
-        "exportErrorTitle": "Export Error",
-        "exportErrorDesc": "There was a problem creating the Excel file. Please try again."
+        "exportButton": "Generate Export"
     }
 }
