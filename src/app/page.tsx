@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useRef } from "react";
@@ -19,6 +20,8 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
+import { WelcomeScreen } from "@/components/welcome-screen";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const { buildings, addBuilding, loading, importData, exportData } = useBuildingData();
@@ -31,8 +34,17 @@ export default function Home() {
   const { toast } = useToast();
 
   const [isClient, setIsClient] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [isWelcomeFading, setIsWelcomeFading] = useState(false);
+
   useEffect(() => {
     setIsClient(true)
+    const welcomeTimer = setTimeout(() => {
+      setIsWelcomeFading(true);
+      setTimeout(() => setShowWelcome(false), 500); // Wait for fade-out animation
+    }, 2000); // Show welcome screen for 2 seconds
+
+    return () => clearTimeout(welcomeTimer);
   }, [])
 
   const handleAddBuilding = (name: string, unitCount: number) => {
@@ -114,9 +126,14 @@ export default function Home() {
   if (!isClient) {
     return null; // or a loading skeleton
   }
+  
+  if (showWelcome) {
+    return <WelcomeScreen isFading={isWelcomeFading} />;
+  }
+
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className={cn("flex flex-col min-h-screen bg-background", "animate-fade-in")}>
       <Header />
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
