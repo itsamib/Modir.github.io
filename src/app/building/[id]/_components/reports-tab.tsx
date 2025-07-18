@@ -162,81 +162,70 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
     const handleExport = () => {
         try {
-            // Units Sheet
+            const workbook = XLSX.utils.book_new();
+
+            // --- Metadata Sheet (for round-trip import) ---
+            const metaData = [
+                ['buildingId', building.id],
+                ['buildingName', building.name]
+            ];
+            const metaWorksheet = XLSX.utils.aoa_to_sheet(metaData);
+            XLSX.utils.book_append_sheet(workbook, metaWorksheet, "metadata");
+
+            // --- Units Sheet ---
             const unitsData = building.units.map(unit => ({
-                'شماره واحد': unit.unitNumber,
-                'نام مالک/مستاجر': unit.tenantName || unit.ownerName,
-                'نام مالک': unit.ownerName,
-                'نام مستاجر': unit.tenantName || '-',
-                'شماره تماس': unit.tenantPhone || unit.ownerPhone,
-                'تلفن مالک': unit.ownerPhone,
-                'تلفن مستاجر': unit.tenantPhone,
-                'تعداد نفرات': unit.occupants,
-                'متراژ (مترمربع)': unit.area
+                id: unit.id,
+                unitNumber: unit.unitNumber,
+                name: getUnitName(unit),
+                area: unit.area,
+                occupants: unit.occupants,
+                ownerName: unit.ownerName,
+                ownerPhone: unit.ownerPhone,
+                tenantName: unit.tenantName,
+                tenantPhone: unit.tenantPhone
             }));
             const unitsWorksheet = XLSX.utils.json_to_sheet(unitsData);
+            XLSX.utils.book_append_sheet(workbook, unitsWorksheet, "Units");
 
-            // Expenses Sheet (Detailed Flat Report)
-            const expensesData = building.expenses.flatMap(expense => {
-                 if (expense.distributionMethod === 'general') {
-                    return [{
-                        'شرح هزینه': getExpenseDescription(expense.description),
-                        'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
-                        'مبلغ کل هزینه': Math.ceil(expense.totalAmount),
-                        'روش تقسیم': t(`addExpenseDialog.methods.${expense.distributionMethod}`),
-                        'پرداخت توسط مدیر': t('global.yes'),
-                        'کسر از صندوق': t('global.yes'),
-                        'شارژ ساختمان': t('global.no'),
-                        'واحد': '-',
-                        'مالک': '-',
-                        'مستاجر': '-',
-                        'سهم واحد': 0,
-                        'وضعیت پرداخت': '-',
-                    }];
-                }
-                return building.units.map(unit => {
+            // --- Expenses Sheet ---
+            const expensesData = building.expenses.map(expense => ({
+                id: expense.id,
+                description: getExpenseDescription(expense.description),
+                totalAmount: expense.totalAmount,
+                date: new Date(expense.date).toISOString().split('T')[0], // YYYY-MM-DD
+                distributionMethod: expense.distributionMethod,
+                chargeTo: expense.chargeTo,
+                paidByManager: expense.paidByManager,
+                isBuildingCharge: expense.isBuildingCharge,
+                deductFromFund: expense.deductFromFund,
+                applicableUnits: JSON.stringify(expense.applicableUnits),
+                paymentStatus: JSON.stringify(expense.paymentStatus),
+            }));
+            const expensesWorksheet = XLSX.utils.json_to_sheet(expensesData);
+            XLSX.utils.book_append_sheet(workbook, expensesWorksheet, "Expenses");
+
+            // --- Individual Unit Sheets ---
+            building.units.forEach(unit => {
+                const unitExpensesData = building.expenses.map(expense => {
                     const amount = getAmountPerUnit(expense, unit, building.units);
                     if (amount === 0) return null;
-                    
-                    const paymentStatus = expense.paymentStatus[unit.id] || 'unpaid';
-
-                    let totalExpenseAmount = expense.totalAmount;
-                    if(expense.distributionMethod === 'custom') {
-                        totalExpenseAmount = (expense.applicableUnits?.length ?? 0) * expense.totalAmount;
-                    }
-
                     return {
-                        'شرح هزینه': getExpenseDescription(expense.description),
-                        'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
-                        'مبلغ کل هزینه': Math.ceil(totalExpenseAmount),
-                        'روش تقسیم': t(`addExpenseDialog.methods.${expense.distributionMethod}`),
-                        'پرداخت توسط مدیر': expense.paidByManager ? t('global.yes') : t('global.no'),
-                        'کسر از صندوق': expense.deductFromFund ? t('global.yes') : t('global.no'),
-                        'شارژ ساختمان': expense.isBuildingCharge ? t('global.yes') : t('global.no'),
-                        'واحد': getUnitName(unit),
-                        'مالک': unit.ownerName,
-                        'مستاجر': unit.tenantName || '-',
-                        'سهم واحد': amount,
-                        'وضعیت پرداخت': paymentStatus === 'paid' ? t('paymentStatus.paid') : t('paymentStatus.unpaid'),
+                        expenseId: expense.id,
+                        description: getExpenseDescription(expense.description),
+                        date: new Date(expense.date).toISOString().split('T')[0],
+                        unitShare: amount,
+                        paymentStatus: t(`paymentStatus.${expense.paymentStatus[unit.id] || 'unpaid'}`)
                     };
                 }).filter(Boolean);
-            }).filter(item => item !== null);
 
-            if (expensesData.length === 0 && unitsData.length === 0) {
-                 toast({
-                    title: t('global.error'),
-                    description: t('reportsTab.noData'),
-                    variant: "destructive"
-                });
-                return;
-            }
-
-            const expensesWorksheet = XLSX.utils.json_to_sheet(expensesData as any[]);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, unitsWorksheet, "Units");
-            XLSX.utils.book_append_sheet(workbook, expensesWorksheet, "Expenses");
+                if (unitExpensesData.length > 0) {
+                    const unitWorksheet = XLSX.utils.json_to_sheet(unitExpensesData as any[]);
+                    const safeSheetName = `Unit_${unit.unitNumber}`.slice(0, 31);
+                    XLSX.utils.book_append_sheet(workbook, unitWorksheet, safeSheetName);
+                }
+            });
             
-            XLSX.writeFile(workbook, `${building.name}-report-${language}.xlsx`);
+            XLSX.writeFile(workbook, `${building.name}-report.xlsx`);
 
             toast({
                 title: t('reportsTab.exportSuccessTitle'),
@@ -380,5 +369,3 @@ export function ReportsTab({ building }: ReportsTabProps) {
         </div>
     )
 }
-
-    

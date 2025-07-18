@@ -31,8 +31,18 @@
         "importSuccessDesc": "Data was restored successfully.",
         "importErrorDesc": "Invalid file format or corrupted file.",
         "importConfirmTitle": "Are you sure you want to import data?",
-        "importConfirmDesc": "Warning: Importing a full backup will replace all current data. Importing a single building will add or update it. This action cannot be undone.",
+        "importConfirmDesc": "Warning: Importing data will overwrite current data based on the input file. This action cannot be undone.",
         "importConfirmAction": "Yes, import it"
+    },
+    "excelImport": {
+        "success": "Building '{buildingName}' was successfully imported or updated from the Excel file.",
+        "errors": {
+            "noMetaSheet": "Invalid Excel file. 'metadata' sheet not found.",
+            "noIdOrName": "Incomplete Excel file. Building ID or Name not found in 'metadata' sheet.",
+            "noUnitsSheet": "'Units' sheet not found in the Excel file.",
+            "noExpensesSheet": "'Expenses' sheet not found in the Excel file.",
+            "processingError": "Error processing the Excel file. Please check the file structure."
+        }
     },
     "createBuildingDialog": {
         "title": "Create New Building",

@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Building, Unit, Expense, PaymentStatus, ChargeTo } from '@/lib/types';
 import * as XLSX from 'xlsx';
+import { useLanguage } from '@/context/language-context';
 
 const STORAGE_KEY = 'building_accountant_data_v3';
 
@@ -15,7 +16,7 @@ const broadcastChanges = () => {
 };
 
 const loadInitialData = () => {
-    if (typeof window !== 'undefined' && memoryState.length === 0) {
+    if (typeof window !== 'undefined') {
         try {
             const data = localStorage.getItem(STORAGE_KEY);
             if (data) {
@@ -32,26 +33,22 @@ loadInitialData();
 
 export const useBuildingData = () => {
   const [buildings, setBuildings] = useState<Building[]>(memoryState);
-  const [loading, setLoading] = useState(() => typeof window === 'undefined' || (memoryState.length === 0 && (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY))));
+  const [loading, setLoading] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
+    loadInitialData(); // Ensure data is loaded on client
+    setBuildings(memoryState);
+    
     const listener = (newState: Building[]) => {
       setBuildings(newState);
-      if (loading) setLoading(false);
     };
     listeners.add(listener);
-    
-    setBuildings(memoryState);
-    if(loading && memoryState.length > 0) setLoading(false);
-    if(loading && typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)){
-       setLoading(false)
-    }
-
 
     return () => {
       listeners.delete(listener);
     };
-  }, [loading]);
+  }, []);
 
   const saveData = useCallback((newData: Building[] | ((prev: Building[]) => Building[]), callback?: () => void) => {
     try {
@@ -221,126 +218,111 @@ export const useBuildingData = () => {
   const importData = (jsonData: string, callback?: () => void) => {
     try {
         const parsedData = JSON.parse(jsonData);
-        if (Array.isArray(parsedData)) {
-            saveData(parsedData, callback);
-        } else if (typeof parsedData === 'object' && parsedData.id && parsedData.name) {
-             saveData(prev => {
-                const existingIndex = prev.findIndex(b => b.id === parsedData.id);
-                if (existingIndex > -1) {
-                    const newState = [...prev];
-                    newState[existingIndex] = parsedData;
-                    return newState;
-                } else {
-                    return [...prev, parsedData];
+        const dataToImport = Array.isArray(parsedData) ? parsedData : [parsedData];
+        
+        saveData(prev => {
+            const newState = [...prev];
+            dataToImport.forEach(building => {
+                if (building.id && building.name) {
+                    const existingIndex = newState.findIndex(b => b.id === building.id);
+                    if (existingIndex > -1) {
+                        newState[existingIndex] = building;
+                    } else {
+                        newState.push(building);
+                    }
                 }
-            }, callback);
-        }
-        else {
-            throw new Error("Invalid data format");
-        }
+            });
+            return newState;
+        }, callback);
+
     } catch(error) {
         console.error("Failed to import data", error);
         throw error;
     }
   };
 
-  const importExcelData = (file: File, callback: (success: boolean, message: string) => void) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-          try {
-              const data = e.target?.result;
-              const workbook = XLSX.read(data, { type: 'array' });
-              
-              const unitsSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('واحدها')); // More flexible
-              const expensesSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('هزینه')); // More flexible
+    const importExcelData = (file: File, callback: (success: boolean, message: string) => void) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'array' });
+                
+                // --- Find metadata sheet to get building ID and Name ---
+                const metaSheetName = workbook.SheetNames.find(name => name.toLowerCase() === 'metadata');
+                if (!metaSheetName) {
+                    return callback(false, t('excelImport.errors.noMetaSheet'));
+                }
+                const metaSheet = workbook.Sheets[metaSheetName];
+                const metaData = XLSX.utils.sheet_to_json<any>(metaSheet, { header: 1 });
+                const buildingId = metaData.find(row => row[0] === 'buildingId')?.[1];
+                const buildingName = metaData.find(row => row[0] === 'buildingName')?.[1];
 
-              if (!unitsSheetName) {
-                  return callback(false, "شیت مشخصات واحدها در فایل اکسل یافت نشد.");
-              }
+                if (!buildingId || !buildingName) {
+                     return callback(false, t('excelImport.errors.noIdOrName'));
+                }
 
-              const unitsSheet = workbook.Sheets[unitsSheetName];
-              const unitsJson = XLSX.utils.sheet_to_json<any>(unitsSheet);
+                // --- Find Units sheet ---
+                const unitsSheetName = workbook.SheetNames.find(name => name.toLowerCase() === 'units');
+                if (!unitsSheetName) {
+                    return callback(false, t('excelImport.errors.noUnitsSheet'));
+                }
+                const unitsSheet = workbook.Sheets[unitsSheetName];
+                const unitsJson = XLSX.utils.sheet_to_json<any>(unitsSheet);
 
-              const newUnits: Unit[] = unitsJson.map((row, index) => {
-                  const unitNumber = row['شماره واحد'] || (index + 1);
-                  const name = row['نام واحد'] || `unitsTab.table.defaultUnitName`;
-                  const ownerName = row['نام مالک/مستاجر'] || row['نام مالک'] || '';
-                  const tenantName = row['نام مستاجر'] || null;
-                  
-                  return {
-                      id: crypto.randomUUID(),
-                      unitNumber: Number(unitNumber),
-                      name: name,
-                      area: Number(row['متراژ (مترمربع)']) || 0,
-                      occupants: Number(row['تعداد نفرات']) || 1,
-                      ownerName: ownerName,
-                      ownerPhone: String(row['شماره تماس'] || row['تلفن مالک'] || ''),
-                      tenantName: tenantName,
-                      tenantPhone: String(row['تلفن مستاجر'] || ''),
-                  }
-              });
+                const newUnits: Unit[] = unitsJson.map(row => ({
+                    id: row['id'],
+                    unitNumber: Number(row['unitNumber']),
+                    name: row['name'],
+                    area: Number(row['area']),
+                    occupants: Number(row['occupants']),
+                    ownerName: row['ownerName'],
+                    ownerPhone: row['ownerPhone'] || '',
+                    tenantName: row['tenantName'] || null,
+                    tenantPhone: row['tenantPhone'] || '',
+                }));
+                
+                // --- Find Expenses sheet ---
+                const expensesSheetName = workbook.SheetNames.find(name => name.toLowerCase() === 'expenses');
+                if (!expensesSheetName) {
+                    return callback(false, t('excelImport.errors.noExpensesSheet'));
+                }
+                const expensesSheet = workbook.Sheets[expensesSheetName];
+                const expensesJson = XLSX.utils.sheet_to_json<any>(expensesSheet);
+                
+                const newExpenses: Expense[] = expensesJson.map(row => ({
+                    id: row['id'],
+                    buildingId: buildingId,
+                    description: row['description'],
+                    totalAmount: Number(row['totalAmount']),
+                    date: new Date(row['date']).toISOString(),
+                    distributionMethod: row['distributionMethod'],
+                    paidByManager: row['paidByManager'] === true || row['paidByManager'] === 'true',
+                    chargeTo: row['chargeTo'],
+                    isBuildingCharge: row['isBuildingCharge'] === true || row['isBuildingCharge'] === 'true',
+                    deductFromFund: row['deductFromFund'] === true || row['deductFromFund'] === 'true',
+                    applicableUnits: row['applicableUnits'] ? JSON.parse(row['applicableUnits']) : undefined,
+                    paymentStatus: row['paymentStatus'] ? JSON.parse(row['paymentStatus']) : {},
+                }));
 
-              let newExpenses: Expense[] = [];
-              if (expensesSheetName) {
-                  const expensesSheet = workbook.Sheets[expensesSheetName];
-                  const expensesJson = XLSX.utils.sheet_to_json<any>(expensesSheet);
-                  
-                  newExpenses = expensesJson.map(row => {
-                      const dateValue = row['تاریخ'] || row['Date'];
-                      let date;
-                      if (typeof dateValue === 'number') {
-                          // Excel date (serial number) to JS Date
-                          date = new Date(Math.round((dateValue - 25569) * 86400 * 1000)).toISOString();
-                      } else if (typeof dateValue === 'string') {
-                          date = new Date(dateValue).toISOString();
-                      } else {
-                          date = new Date().toISOString();
-                      }
+                const newBuilding: Building = {
+                    id: buildingId,
+                    name: buildingName,
+                    units: newUnits,
+                    expenses: newExpenses,
+                };
+                
+                importData(JSON.stringify(newBuilding), () => {
+                     callback(true, t('excelImport.success', { buildingName }));
+                });
 
-                      const expense: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'> = {
-                          description: String(row['نوع هزینه'] || row['شرح هزینه'] || 'هزینه نامشخص'),
-                          totalAmount: Number(row['مبلغ کل'] || 0),
-                          date: date,
-                          distributionMethod: 'unit_count', // Default, can be refined
-                          paidByManager: String(row['پرداخت کننده']).toLowerCase() === 'مدیر',
-                          chargeTo: 'all', // Default
-                          isBuildingCharge: (String(row['نوع هزینه']).includes('شارژ')),
-                          deductFromFund: false, // Cannot be determined from sample
-                      };
-                      
-                      const paymentStatus: Record<string, PaymentStatus> = {};
-                      newUnits.forEach(unit => {
-                          paymentStatus[unit.id] = 'unpaid';
-                      });
-
-                      return {
-                          ...expense,
-                          id: crypto.randomUUID(),
-                          buildingId: '',
-                          paymentStatus,
-                      };
-                  });
-              }
-
-              const buildingName = file.name.replace(/\.(xlsx|xls)$/, '');
-              const newBuilding: Building = {
-                  id: crypto.randomUUID(),
-                  name: buildingName,
-                  units: newUnits,
-                  expenses: newExpenses,
-              };
-              newBuilding.expenses.forEach(exp => exp.buildingId = newBuilding.id);
-              
-              saveData(prev => [...prev, newBuilding]);
-              callback(true, `ساختمان '${buildingName}' با موفقیت از فایل اکسل وارد شد.`);
-
-          } catch (error) {
-              console.error("Excel import failed:", error);
-              callback(false, "خطا در پردازش فایل اکسل. لطفاً ساختار فایل را بررسی کنید.");
-          }
-      };
-      reader.readAsArrayBuffer(file);
-  };
+            } catch (error) {
+                console.error("Excel import failed:", error);
+                callback(false, t('excelImport.errors.processingError'));
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
 
 
   return { 
@@ -363,5 +345,3 @@ export const useBuildingData = () => {
 };
 
 export type { Building, Unit, Expense, PaymentStatus, ChargeTo };
-
-    

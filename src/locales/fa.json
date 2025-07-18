@@ -28,11 +28,21 @@
         "exportSuccessTitle": "خروجی موفق",
         "exportSuccessDesc": "فایل پشتیبان با موفقیت ایجاد شد.",
         "importSuccessTitle": "ورود موفق",
-        "importSuccessDesc": "اطلاعات با موفقیت بازیابی شد.",
+        "importSuccessDesc": "داده‌ها با موفقیت بازیابی شد.",
         "importErrorDesc": "فرمت فایل نامعتبر است یا فایل خراب شده است.",
         "importConfirmTitle": "آیا از ورود داده‌ها مطمئن هستید؟",
-        "importConfirmDesc": "توجه: ورود فایل پشتیبان کلی، تمام داده‌های فعلی را جایگزین می‌کند. ورود فایل یک ساختمان، آن را اضافه یا به‌روزرسانی می‌کند. این عمل قابل بازگشت نیست.",
+        "importConfirmDesc": "هشدار: ورود داده‌ها، اطلاعات فعلی را بر اساس فایل ورودی بازنویسی می‌کند. این عمل قابل بازگشت نیست.",
         "importConfirmAction": "بله، وارد کن"
+    },
+    "excelImport": {
+        "success": "ساختمان '{buildingName}' با موفقیت از فایل اکسل وارد یا به‌روزرسانی شد.",
+        "errors": {
+            "noMetaSheet": "فایل اکسل معتبر نیست. شیت 'metadata' یافت نشد.",
+            "noIdOrName": "فایل اکسل ناقص است. شناسه یا نام ساختمان در شیت 'metadata' وجود ندارد.",
+            "noUnitsSheet": "شیت 'Units' در فایل اکسل یافت نشد.",
+            "noExpensesSheet": "شیت 'Expenses' در فایل اکسل یافت نشد.",
+            "processingError": "خطا در پردازش فایل اکسل. لطفاً ساختار فایل را بررسی کنید."
+        }
     },
     "createBuildingDialog": {
         "title": "ایجاد ساختمان جدید",
