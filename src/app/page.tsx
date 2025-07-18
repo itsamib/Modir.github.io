@@ -24,7 +24,7 @@ import { WelcomeScreen } from "@/components/welcome-screen";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
-  const { buildings, addBuilding, loading, importData, exportData } = useBuildingData();
+  const { buildings, addBuilding, loading, importData, importExcelData } = useBuildingData();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isImportAlertOpen, setIsImportAlertOpen] = useState(false);
   const [fileToImport, setFileToImport] = useState<File | null>(null);
@@ -68,31 +68,54 @@ export default function Home() {
 
   const handleConfirmImport = () => {
     if (!fileToImport) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const text = e.target?.result;
-            if (typeof text === 'string') {
-                importData(text);
+
+    const isExcel = fileToImport.name.endsWith('.xlsx') || fileToImport.name.endsWith('.xls');
+
+    if (isExcel) {
+        importExcelData(fileToImport, (success, message) => {
+            if (success) {
                 toast({
                     title: t('home.importSuccessTitle'),
-                    description: t('home.importSuccessDesc'),
+                    description: message,
                     className: "bg-primary text-primary-foreground"
                 });
+            } else {
+                 toast({
+                    title: t('global.error'),
+                    description: message,
+                    variant: "destructive"
+                });
             }
-        } catch (error) {
-            console.error("Import failed:", error);
-            toast({
-                title: t('global.error'),
-                description: t('home.importErrorDesc'),
-                variant: "destructive"
-            });
-        } finally {
-            setIsImportAlertOpen(false);
-            setFileToImport(null);
-        }
-    };
-    reader.readAsText(fileToImport);
+             setIsImportAlertOpen(false);
+             setFileToImport(null);
+        })
+    } else {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const text = e.target?.result;
+                if (typeof text === 'string') {
+                    importData(text);
+                    toast({
+                        title: t('home.importSuccessTitle'),
+                        description: t('home.importSuccessDesc'),
+                        className: "bg-primary text-primary-foreground"
+                    });
+                }
+            } catch (error) {
+                console.error("Import failed:", error);
+                toast({
+                    title: t('global.error'),
+                    description: t('home.importErrorDesc'),
+                    variant: "destructive"
+                });
+            } finally {
+                setIsImportAlertOpen(false);
+                setFileToImport(null);
+            }
+        };
+        reader.readAsText(fileToImport);
+    }
   }
   
   const handleGlobalExport = () => {
@@ -145,7 +168,7 @@ export default function Home() {
               type="file" 
               ref={fileInputRef} 
               className="hidden" 
-              accept="application/json"
+              accept="application/json, .xlsx, .xls"
               onChange={handleFileChange}
             />
              <Button onClick={handleImportClick} variant="outline" className="flex items-center gap-2">
