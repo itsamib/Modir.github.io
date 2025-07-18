@@ -5,9 +5,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { Building, Unit, Expense, PaymentStatus, ChargeTo } from '@/lib/types';
 import * as XLSX from 'xlsx';
 
-const STORAGE_KEY = 'building_accountant_data_v3'; // Version updated for new data structure
+const STORAGE_KEY = 'building_accountant_data_v3';
 
-// This state is shared across all instances of the hook
 let memoryState: Building[] = [];
 const listeners: Set<(state: Building[]) => void> = new Set();
 
@@ -21,58 +20,33 @@ const loadInitialData = () => {
             const data = localStorage.getItem(STORAGE_KEY);
             if (data) {
                 memoryState = JSON.parse(data);
-            } else {
-                // Try to load from old key and migrate
-                const oldData = localStorage.getItem('building_accountant_data_v2');
-                if (oldData) {
-                    const parsedOldData: Building[] = JSON.parse(oldData);
-                    memoryState = parsedOldData.map(building => ({
-                        ...building,
-                        expenses: building.expenses.map(expense => ({
-                            ...expense,
-                            isBuildingCharge: expense.description.includes("شارژ") || expense.description.toLowerCase().includes("charge"),
-                            deductFromFund: false,
-                        }))
-                    }));
-                    localStorage.setItem(STORAGE_KEY, JSON.stringify(memoryState));
-                    localStorage.removeItem('building_accountant_data_v2');
-                } else {
-                    memoryState = [];
-                }
             }
         } catch (error) {
-            console.error("Failed to load or migrate data from localStorage", error);
+            console.error("Failed to load data from localStorage", error);
             memoryState = [];
         }
     }
 };
 
-// Load data synchronously on script load
 loadInitialData();
 
 export const useBuildingData = () => {
   const [buildings, setBuildings] = useState<Building[]>(memoryState);
-  // Only set loading to true if there's truly nothing loaded yet.
-  const [loading, setLoading] = useState(() => {
-    if (typeof window === 'undefined') return true; // Still loading on server
-    return memoryState.length === 0 && !localStorage.getItem(STORAGE_KEY);
-  });
+  const [loading, setLoading] = useState(() => typeof window === 'undefined' || (memoryState.length === 0 && (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY))));
 
   useEffect(() => {
-    // This listener keeps all hook instances in sync
     const listener = (newState: Building[]) => {
       setBuildings(newState);
-      if (loading && newState.length > 0) {
-          setLoading(false);
-      }
+      if (loading) setLoading(false);
     };
     listeners.add(listener);
     
-    // Initial sync and loading state check
-    if (memoryState.length > 0 && loading) {
-        setLoading(false);
-    }
     setBuildings(memoryState);
+    if(loading && memoryState.length > 0) setLoading(false);
+    if(loading && typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY)){
+       setLoading(false)
+    }
+
 
     return () => {
       listeners.delete(listener);
@@ -97,11 +71,11 @@ export const useBuildingData = () => {
       name,
       units: Array.from({ length: unitCount }, (_, i) => ({
         id: crypto.randomUUID(),
-        name: 'unitsTab.table.defaultUnitName', // Use translation key
+        name: 'unitsTab.table.defaultUnitName',
         unitNumber: i + 1,
         area: 100,
         occupants: 2,
-        ownerName: '', // Let user fill this
+        ownerName: '',
         tenantName: null,
         ownerPhone: '',
         tenantPhone: ''
@@ -165,7 +139,6 @@ export const useBuildingData = () => {
             });
         }
 
-
         const newExpense: Expense = {
             ...expense,
             id: crypto.randomUUID(),
@@ -190,14 +163,13 @@ export const useBuildingData = () => {
           const updatedExpenses = b.expenses.map(e => {
               if (e.id !== expenseId) return e;
               
-              let paymentStatus = e.paymentStatus; // Keep existing payment statuses
-              // If distribution method changes from something to general, clear payment status
+              let paymentStatus = e.paymentStatus;
               if (e.distributionMethod !== 'general' && expenseData.distributionMethod === 'general') {
                   paymentStatus = {};
               }
 
               const updatedExpense: Expense = {
-                  ...e, // keep id and buildingId
+                  ...e,
                   ...expenseData,
                   paymentStatus,
                    chargeTo: expenseData.chargeTo || 'all',
@@ -249,20 +221,16 @@ export const useBuildingData = () => {
   const importData = (jsonData: string, callback?: () => void) => {
     try {
         const parsedData = JSON.parse(jsonData);
-        // Basic validation can be added here
-        if (Array.isArray(parsedData)) { // It's a full backup of all buildings
+        if (Array.isArray(parsedData)) {
             saveData(parsedData, callback);
-        } else if (typeof parsedData === 'object' && parsedData.id && parsedData.name) { // It's a single building backup
+        } else if (typeof parsedData === 'object' && parsedData.id && parsedData.name) {
              saveData(prev => {
-                // It's a single building, check if it exists
                 const existingIndex = prev.findIndex(b => b.id === parsedData.id);
                 if (existingIndex > -1) {
-                    // Update existing building
                     const newState = [...prev];
                     newState[existingIndex] = parsedData;
                     return newState;
                 } else {
-                    // Add as a new building
                     return [...prev, parsedData];
                 }
             }, callback);
@@ -272,7 +240,7 @@ export const useBuildingData = () => {
         }
     } catch(error) {
         console.error("Failed to import data", error);
-        throw error; // Re-throw to be caught by the UI
+        throw error;
     }
   };
 
@@ -283,42 +251,61 @@ export const useBuildingData = () => {
               const data = e.target?.result;
               const workbook = XLSX.read(data, { type: 'array' });
               
-              const unitsSheetName = workbook.SheetNames.find(name => name.toLowerCase() === 'units');
-              const expensesSheetName = workbook.SheetNames.find(name => name.toLowerCase() === 'expenses');
+              const unitsSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('واحدها')); // More flexible
+              const expensesSheetName = workbook.SheetNames.find(name => name.toLowerCase().includes('هزینه')); // More flexible
 
               if (!unitsSheetName) {
-                  return callback(false, "شیت 'Units' در فایل اکسل یافت نشد.");
+                  return callback(false, "شیت مشخصات واحدها در فایل اکسل یافت نشد.");
               }
 
               const unitsSheet = workbook.Sheets[unitsSheetName];
-              const unitsData = XLSX.utils.sheet_to_json<any>(unitsSheet);
+              const unitsJson = XLSX.utils.sheet_to_json<any>(unitsSheet);
 
-              const newUnits: Unit[] = unitsData.map((row, index) => ({
-                  id: crypto.randomUUID(),
-                  unitNumber: index + 1,
-                  name: row['Unit Name'] || `واحد ${index + 1}`,
-                  area: Number(row['Area']) || 0,
-                  occupants: Number(row['Occupants']) || 1,
-                  ownerName: String(row['Owner Name'] || ''),
-                  ownerPhone: String(row['Owner Phone'] || ''),
-                  tenantName: String(row['Tenant Name'] || null),
-                  tenantPhone: String(row['Tenant Phone'] || ''),
-              }));
+              const newUnits: Unit[] = unitsJson.map((row, index) => {
+                  const unitNumber = row['شماره واحد'] || (index + 1);
+                  const name = row['نام واحد'] || `unitsTab.table.defaultUnitName`;
+                  const ownerName = row['نام مالک/مستاجر'] || row['نام مالک'] || '';
+                  const tenantName = row['نام مستاجر'] || null;
+                  
+                  return {
+                      id: crypto.randomUUID(),
+                      unitNumber: Number(unitNumber),
+                      name: name,
+                      area: Number(row['متراژ (مترمربع)']) || 0,
+                      occupants: Number(row['تعداد نفرات']) || 1,
+                      ownerName: ownerName,
+                      ownerPhone: String(row['شماره تماس'] || row['تلفن مالک'] || ''),
+                      tenantName: tenantName,
+                      tenantPhone: String(row['تلفن مستاجر'] || ''),
+                  }
+              });
 
               let newExpenses: Expense[] = [];
               if (expensesSheetName) {
                   const expensesSheet = workbook.Sheets[expensesSheetName];
-                  const expensesData = XLSX.utils.sheet_to_json<any>(expensesSheet);
-                  newExpenses = expensesData.map(row => {
+                  const expensesJson = XLSX.utils.sheet_to_json<any>(expensesSheet);
+                  
+                  newExpenses = expensesJson.map(row => {
+                      const dateValue = row['تاریخ'] || row['Date'];
+                      let date;
+                      if (typeof dateValue === 'number') {
+                          // Excel date (serial number) to JS Date
+                          date = new Date(Math.round((dateValue - 25569) * 86400 * 1000)).toISOString();
+                      } else if (typeof dateValue === 'string') {
+                          date = new Date(dateValue).toISOString();
+                      } else {
+                          date = new Date().toISOString();
+                      }
+
                       const expense: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'> = {
-                          description: String(row['Description'] || 'هزینه نامشخص'),
-                          totalAmount: Number(row['Total Amount']) || 0,
-                          date: new Date((row['Date'] - (25567 + 2)) * 86400 * 1000).toISOString(), // Excel date to JS date
-                          distributionMethod: row['Distribution Method'] || 'unit_count',
-                          paidByManager: String(row['Paid by Manager']).toLowerCase() === 'yes',
-                          chargeTo: row['Charge To'] || 'all',
-                          isBuildingCharge: String(row['Is Building Charge']).toLowerCase() === 'yes',
-                          deductFromFund: String(row['Deduct from Fund']).toLowerCase() === 'yes',
+                          description: String(row['نوع هزینه'] || row['شرح هزینه'] || 'هزینه نامشخص'),
+                          totalAmount: Number(row['مبلغ کل'] || 0),
+                          date: date,
+                          distributionMethod: 'unit_count', // Default, can be refined
+                          paidByManager: String(row['پرداخت کننده']).toLowerCase() === 'مدیر',
+                          chargeTo: 'all', // Default
+                          isBuildingCharge: (String(row['نوع هزینه']).includes('شارژ')),
+                          deductFromFund: false, // Cannot be determined from sample
                       };
                       
                       const paymentStatus: Record<string, PaymentStatus> = {};
@@ -329,7 +316,7 @@ export const useBuildingData = () => {
                       return {
                           ...expense,
                           id: crypto.randomUUID(),
-                          buildingId: '', // will be set later
+                          buildingId: '',
                           paymentStatus,
                       };
                   });
@@ -340,7 +327,7 @@ export const useBuildingData = () => {
                   id: crypto.randomUUID(),
                   name: buildingName,
                   units: newUnits,
-                  expenses: newExpenses.map(exp => ({ ...exp, buildingId: '' })), // placeholder
+                  expenses: newExpenses,
               };
               newBuilding.expenses.forEach(exp => exp.buildingId = newBuilding.id);
               
@@ -376,3 +363,5 @@ export const useBuildingData = () => {
 };
 
 export type { Building, Unit, Expense, PaymentStatus, ChargeTo };
+
+    

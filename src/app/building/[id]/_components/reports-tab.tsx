@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useMemo } from 'react';
@@ -161,9 +162,24 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
     const handleExport = () => {
         try {
-            const data = building.expenses.flatMap(expense => {
+            // Units Sheet
+            const unitsData = building.units.map(unit => ({
+                'شماره واحد': unit.unitNumber,
+                'نام مالک/مستاجر': unit.tenantName || unit.ownerName,
+                'نام مالک': unit.ownerName,
+                'نام مستاجر': unit.tenantName || '-',
+                'شماره تماس': unit.tenantPhone || unit.ownerPhone,
+                'تلفن مالک': unit.ownerPhone,
+                'تلفن مستاجر': unit.tenantPhone,
+                'تعداد نفرات': unit.occupants,
+                'متراژ (مترمربع)': unit.area
+            }));
+            const unitsWorksheet = XLSX.utils.json_to_sheet(unitsData);
+
+            // Expenses Sheet (Detailed Flat Report)
+            const expensesData = building.expenses.flatMap(expense => {
                  if (expense.distributionMethod === 'general') {
-                    return {
+                    return [{
                         'شرح هزینه': getExpenseDescription(expense.description),
                         'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
                         'مبلغ کل هزینه': Math.ceil(expense.totalAmount),
@@ -176,7 +192,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
                         'مستاجر': '-',
                         'سهم واحد': 0,
                         'وضعیت پرداخت': '-',
-                    };
+                    }];
                 }
                 return building.units.map(unit => {
                     const amount = getAmountPerUnit(expense, unit, building.units);
@@ -204,9 +220,9 @@ export function ReportsTab({ building }: ReportsTabProps) {
                         'وضعیت پرداخت': paymentStatus === 'paid' ? t('paymentStatus.paid') : t('paymentStatus.unpaid'),
                     };
                 }).filter(Boolean);
-            });
+            }).filter(item => item !== null);
 
-            if (data.length === 0) {
+            if (expensesData.length === 0 && unitsData.length === 0) {
                  toast({
                     title: t('global.error'),
                     description: t('reportsTab.noData'),
@@ -215,9 +231,10 @@ export function ReportsTab({ building }: ReportsTabProps) {
                 return;
             }
 
-            const worksheet = XLSX.utils.json_to_sheet(data as any[]);
+            const expensesWorksheet = XLSX.utils.json_to_sheet(expensesData as any[]);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Expense Report");
+            XLSX.utils.book_append_sheet(workbook, unitsWorksheet, "Units");
+            XLSX.utils.book_append_sheet(workbook, expensesWorksheet, "Expenses");
             
             XLSX.writeFile(workbook, `${building.name}-report-${language}.xlsx`);
 
@@ -363,3 +380,5 @@ export function ReportsTab({ building }: ReportsTabProps) {
         </div>
     )
 }
+
+    
