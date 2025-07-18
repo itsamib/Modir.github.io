@@ -11,7 +11,7 @@ interface LanguageContextType {
   language: Language;
   direction: Direction;
   toggleLanguage: () => void;
-  t: (key: string) => string;
+  t: (key: string, values?: Record<string, string | number>) => string;
 }
 
 const translations = { fa, en };
@@ -39,7 +39,7 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const t = (key: string): string => {
+  const t = (key: string, values?: Record<string, string | number>): string => {
     const keys = key.split('.');
     let result: any = translations[language];
     for (const k of keys) {
@@ -48,6 +48,13 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
         return key; // Return key if not found
       }
     }
+    
+    if (typeof result === 'string' && values) {
+      return Object.entries(values).reduce((acc, [placeholder, value]) => {
+        return acc.replace(`{${placeholder}}`, String(value));
+      }, result);
+    }
+
     return result || key;
   };
   
