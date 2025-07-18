@@ -137,9 +137,9 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const expensesByUnit = useMemo(() => {
         const result: Record<string, { unit: Unit, expenses: (Expense & { amount: number })[], totalUnpaid: number }> = {};
         building.units.forEach(unit => {
-            const unitExpenses = [];
+            const unitExpenses: (Expense & { amount: number })[] = [];
             let totalUnpaidForUnit = 0;
-            
+
             for (const expense of building.expenses) {
                 const amount = getAmountPerUnit(expense, unit, building.units);
                 if (amount > 0) {
@@ -150,7 +150,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     }
                 }
             }
-            
+
             unitExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             result[unit.id] = { unit, expenses: unitExpenses, totalUnpaid: totalUnpaidForUnit };
         });
@@ -335,12 +335,12 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     return (
         <Card>
             <CardHeader>
-                <div className="flex flex-wrap gap-4 justify-between items-center">
-                    <div>
+                <div className="flex flex-wrap gap-4 justify-between items-start">
+                    <div className="flex-1">
                         <CardTitle>{t('expensesTab.title')}</CardTitle>
                         <CardDescription>{t('expensesTab.description')}</CardDescription>
                     </div>
-                    <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2">
+                     <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2 rtl:mr-auto ltr:ml-auto">
                         <PlusCircle size={20} />
                         <span>{t('expensesTab.addExpense')}</span>
                     </Button>
