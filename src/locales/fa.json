@@ -97,6 +97,8 @@
             "description": "شرح هزینه",
             "date": "تاریخ",
             "totalAmount": "مبلغ کل",
+            "unitShare": "سهم واحد",
+            "paymentStatus": "وضعیت پرداخت",
             "actions": "عملیات"
         },
         "badges": {
@@ -104,7 +106,15 @@
             "chargeToAll": "همه ساکنین",
             "chargeToOwner": "فقط مالک",
             "chargeToTenant": "فقط مستاجر"
-        }
+        },
+        "viewMode": {
+            "title": "حالت نمایش",
+            "byDate": "بر اساس تاریخ",
+            "byUnit": "تفکیک واحدها"
+        },
+        "unpaidAmount": "بدهی: {amount}",
+        "allPaid": "تسویه کامل",
+        "noExpensesForUnit": "هیچ هزینه‌ای برای این واحد ثبت نشده است."
     },
     "paymentStatus": {
         "paid": "پرداخت شده",

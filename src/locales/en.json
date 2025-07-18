@@ -97,6 +97,8 @@
             "description": "Description",
             "date": "Date",
             "totalAmount": "Total Amount",
+            "unitShare": "Unit Share",
+            "paymentStatus": "Payment Status",
             "actions": "Actions"
         },
         "badges": {
@@ -104,7 +106,15 @@
             "chargeToAll": "All Residents",
             "chargeToOwner": "Owner Only",
             "chargeToTenant": "Tenant Only"
-        }
+        },
+        "viewMode": {
+            "title": "View Mode",
+            "byDate": "By Date",
+            "byUnit": "By Unit"
+        },
+        "unpaidAmount": "Unpaid: {amount}",
+        "allPaid": "All Paid",
+        "noExpensesForUnit": "No expenses recorded for this unit."
     },
     "paymentStatus": {
         "paid": "Paid",

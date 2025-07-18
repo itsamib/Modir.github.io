@@ -5,13 +5,20 @@ import { Building, Expense, Unit, useBuildingData, PaymentStatus, ChargeTo } fro
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Users } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Users, Calendar, Building as BuildingIcon } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -93,6 +100,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const [yearFilter, setYearFilter] = useState<string>("all");
     const [monthFilter, setMonthFilter] = useState<string>("all");
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
+    const [viewMode, setViewMode] = useState<'byDate' | 'byUnit'>('byDate');
     const { t, language } = useLanguage();
 
     const chargeToText = (chargeTo: ChargeTo) => {
@@ -111,6 +119,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const filteredExpenses = useMemo(() => {
         return building.expenses
             .filter(e => {
+                if (viewMode === 'byUnit') return true; // No date filter in byUnit view
                 const expenseDate = new Date(e.date);
                 const yearMatches = yearFilter === "all" || getYear(expenseDate).toString() === yearFilter;
                 const monthMatches = monthFilter === "all" || (expenseDate.getMonth() + 1).toString() === monthFilter;
@@ -118,8 +127,27 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
             })
             .filter(e => !showManagerExpenses || e.paidByManager)
             .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [building.expenses, yearFilter, monthFilter, showManagerExpenses]);
+    }, [building.expenses, yearFilter, monthFilter, showManagerExpenses, viewMode]);
     
+    const expensesByUnit = useMemo(() => {
+        const result: Record<string, { unit: Unit, expenses: (Expense & { amount: number })[], totalUnpaid: number }> = {};
+        building.units.forEach(unit => {
+            const unitExpenses = [];
+            let totalUnpaid = 0;
+            for (const expense of filteredExpenses) {
+                const amount = getAmountPerUnit(expense, unit, building.units);
+                if (amount > 0) {
+                    unitExpenses.push({ ...expense, amount });
+                    if ((expense.paymentStatus[unit.id] || 'unpaid') === 'unpaid') {
+                        totalUnpaid += amount;
+                    }
+                }
+            }
+            result[unit.id] = { unit, expenses: unitExpenses, totalUnpaid };
+        });
+        return result;
+    }, [building.units, filteredExpenses, building.units]);
+
     const handleOpenAddDialog = (expense: Expense | null) => {
         setEditingExpense(expense);
         setIsAddDialogOpen(true);
@@ -175,6 +203,124 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const formatNumber = (num: number) => {
         return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(num);
     }
+    
+    const renderByDateView = () => (
+        <div className="overflow-x-auto">
+            <Table>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>{t('expensesTab.table.description')}</TableHead>
+                        <TableHead>{t('expensesTab.table.date')}</TableHead>
+                        <TableHead>{t('expensesTab.table.totalAmount')}</TableHead>
+                        {building.units.map(unit => (
+                            <TableHead key={unit.id} className="text-center">{unit.name}</TableHead>
+                        ))}
+                        <TableHead className="text-center">{t('expensesTab.table.actions')}</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredExpenses.map(expense => (
+                        <TableRow key={expense.id}>
+                            <TableCell className="font-medium">
+                                <div className="flex flex-col gap-1">
+                                    <span>{expense.description}</span>
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="mx-1"/>{t('expensesTab.badges.paidByManager')}</Badge>}
+                                         <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="mx-1"/>{chargeToText(expense.chargeTo)}</Badge>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
+                            <TableCell>{formatNumber(Math.ceil(getTotalAmountForDisplay(expense)))}</TableCell>
+                            {building.units.map(unit => {
+                                const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
+                                const status = expense.paymentStatus[unit.id] || 'unpaid';
+                                
+                                const isApplicable = amountPerUnit > 0;
+
+                                return (
+                                    <TableCell key={unit.id} className="text-center">
+                                        {isApplicable ? (
+                                            <div className="flex flex-col items-center gap-1">
+                                                <span>{formatNumber(amountPerUnit)}</span>
+                                                 <PaymentStatusBadge 
+                                                    status={status}
+                                                    onClick={() => handleUpdateStatus(expense.id, unit.id, status)}
+                                                 />
+                                            </div>
+                                        ) : (
+                                            <span>-</span>
+                                        )}
+                                    </TableCell>
+                                )
+                            })}
+                            <TableCell className="text-center">
+                                <Button variant="ghost" size="icon" onClick={() => handleOpenAddDialog(expense)}>
+                                    <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(expense.id)} className="text-destructive hover:text-destructive">
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </TableCell>
+                        </TableRow>
+                    ))}
+                </TableBody>
+            </Table>
+             {filteredExpenses.length === 0 && (
+                 <div className="text-center py-10 text-muted-foreground">{t('expensesTab.noExpensesFound')}</div>
+            )}
+        </div>
+    );
+
+    const renderByUnitView = () => (
+        <Accordion type="single" collapsible className="w-full">
+            {Object.values(expensesByUnit).map(({ unit, expenses, totalUnpaid }) => (
+                <AccordionItem value={unit.id} key={unit.id}>
+                    <AccordionTrigger>
+                       <div className="flex justify-between w-full items-center">
+                            <span>{unit.name}</span>
+                            {totalUnpaid > 0 ? (
+                                <Badge variant="destructive">{t('expensesTab.unpaidAmount', {amount: formatNumber(totalUnpaid)})}</Badge>
+                            ) : (
+                                <Badge className="bg-green-500 hover:bg-green-600">{t('expensesTab.allPaid')}</Badge>
+                            )}
+                       </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                        {expenses.length > 0 ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>{t('expensesTab.table.description')}</TableHead>
+                                        <TableHead>{t('expensesTab.table.date')}</TableHead>
+                                        <TableHead>{t('expensesTab.table.unitShare')}</TableHead>
+                                        <TableHead className="text-center">{t('expensesTab.table.paymentStatus')}</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {expenses.map(expense => (
+                                        <TableRow key={`${unit.id}-${expense.id}`}>
+                                            <TableCell className="font-medium">{expense.description}</TableCell>
+                                            <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
+                                            <TableCell>{formatNumber(expense.amount)}</TableCell>
+                                            <TableCell className="flex justify-center">
+                                                <PaymentStatusBadge 
+                                                    status={expense.paymentStatus[unit.id] || 'unpaid'}
+                                                    onClick={() => handleUpdateStatus(expense.id, unit.id, expense.paymentStatus[unit.id] || 'unpaid')}
+                                                />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        ) : (
+                            <p className="text-center text-muted-foreground p-4">{t('expensesTab.noExpensesForUnit')}</p>
+                        )}
+                    </AccordionContent>
+                </AccordionItem>
+            ))}
+        </Accordion>
+    );
 
     return (
         <Card>
@@ -189,94 +335,48 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <span>{t('expensesTab.addExpense')}</span>
                     </Button>
                 </div>
-                 <div className="flex flex-wrap gap-4 items-center pt-4">
-                    <SlidersHorizontal className="text-muted-foreground" />
-                    <Select value={yearFilter} onValueChange={setYearFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
-                        <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByYear')} /></SelectTrigger>
-                        <SelectContent>
-                            {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? t('expensesTab.allYears') : formatNumber(parseInt(y))}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                     <Select value={monthFilter} onValueChange={setMonthFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
-                        <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByMonth')} /></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">{t('expensesTab.allMonths')}</SelectItem>
-                            {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: faIR })}</SelectItem>)}
-                        </SelectContent>
-                    </Select>
-                    <div className="flex items-center space-x-2 space-x-reverse">
-                        <UserCheck className="text-muted-foreground"/>
-                        <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>
-                        <Switch id="manager-expenses" checked={showManagerExpenses} onCheckedChange={setShowManagerExpenses} />
+                 <div className="flex flex-col gap-4 pt-4 border-t mt-4">
+                     <div className="flex flex-wrap gap-4 items-center">
+                        <Label>{t('expensesTab.viewMode.title')}</Label>
+                        <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-4">
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                                <RadioGroupItem value="byDate" id="byDate" />
+                                <Label htmlFor="byDate" className="font-normal flex items-center gap-2"><Calendar size={16}/> {t('expensesTab.viewMode.byDate')}</Label>
+                            </div>
+                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                                <RadioGroupItem value="byUnit" id="byUnit" />
+                                <Label htmlFor="byUnit" className="font-normal flex items-center gap-2"><BuildingIcon size={16}/> {t('expensesTab.viewMode.byUnit')}</Label>
+                            </div>
+                        </RadioGroup>
                     </div>
+
+                    {viewMode === 'byDate' && (
+                        <div className="flex flex-wrap gap-4 items-center">
+                            <SlidersHorizontal className="text-muted-foreground" />
+                            <Select value={yearFilter} onValueChange={setYearFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                                <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByYear')} /></SelectTrigger>
+                                <SelectContent>
+                                    {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? t('expensesTab.allYears') : formatNumber(parseInt(y))}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                             <Select value={monthFilter} onValueChange={setMonthFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                                <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByMonth')} /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">{t('expensesTab.allMonths')}</SelectItem>
+                                    {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: faIR })}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                                <UserCheck className="text-muted-foreground"/>
+                                <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>
+                                <Switch id="manager-expenses" checked={showManagerExpenses} onCheckedChange={setShowManagerExpenses} />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>{t('expensesTab.table.description')}</TableHead>
-                                <TableHead>{t('expensesTab.table.date')}</TableHead>
-                                <TableHead>{t('expensesTab.table.totalAmount')}</TableHead>
-                                {building.units.map(unit => (
-                                    <TableHead key={unit.id} className="text-center">{unit.name}</TableHead>
-                                ))}
-                                <TableHead className="text-center">{t('expensesTab.table.actions')}</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filteredExpenses.map(expense => (
-                                <TableRow key={expense.id}>
-                                    <TableCell className="font-medium">
-                                        <div className="flex flex-col gap-1">
-                                            <span>{expense.description}</span>
-                                            <div className="flex items-center gap-2 flex-wrap">
-                                                {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="mx-1"/>{t('expensesTab.badges.paidByManager')}</Badge>}
-                                                 <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="mx-1"/>{chargeToText(expense.chargeTo)}</Badge>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
-                                    <TableCell>{formatNumber(Math.ceil(getTotalAmountForDisplay(expense)))}</TableCell>
-                                    {building.units.map(unit => {
-                                        const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
-                                        const status = expense.paymentStatus[unit.id] || 'unpaid';
-                                        
-                                        const isApplicable = amountPerUnit > 0;
-
-                                        return (
-                                            <TableCell key={unit.id} className="text-center">
-                                                {isApplicable ? (
-                                                    <div className="flex flex-col items-center gap-1">
-                                                        <span>{formatNumber(amountPerUnit)}</span>
-                                                         <PaymentStatusBadge 
-                                                            status={status}
-                                                            onClick={() => handleUpdateStatus(expense.id, unit.id, status)}
-                                                         />
-                                                    </div>
-                                                ) : (
-                                                    <span>-</span>
-                                                )}
-                                            </TableCell>
-                                        )
-                                    })}
-                                    <TableCell className="text-center">
-                                        <Button variant="ghost" size="icon" onClick={() => handleOpenAddDialog(expense)}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => openDeleteDialog(expense.id)} className="text-destructive hover:text-destructive">
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
-                {filteredExpenses.length === 0 && (
-                     <div className="text-center py-10 text-muted-foreground">{t('expensesTab.noExpensesFound')}</div>
-                )}
+                {viewMode === 'byDate' ? renderByDateView() : renderByUnitView()}
             </CardContent>
             <AddExpenseDialog
                 isOpen={isAddDialogOpen}
