@@ -74,7 +74,7 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
         {t('dashboard.title')}
       </p>
 
-      <Tabs defaultValue="expenses" className="w-full">
+      <Tabs defaultValue="reports" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-muted/50">
           <TabsTrigger value="expenses" className="flex items-center gap-2"><Receipt size={16} />{t('dashboard.tabs.expenses')}</TabsTrigger>
           <TabsTrigger value="units" className="flex items-center gap-2"><Home size={16} />{t('dashboard.tabs.units')}</TabsTrigger>
