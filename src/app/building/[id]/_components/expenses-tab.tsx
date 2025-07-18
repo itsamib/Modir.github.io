@@ -138,20 +138,21 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         const result: Record<string, { unit: Unit, expenses: (Expense & { amount: number })[], totalUnpaid: number }> = {};
         building.units.forEach(unit => {
             const unitExpenses = [];
-            let totalUnpaid = 0;
-            // When calculating by unit, we should ignore date and manager filters to show all-time debt
+            let totalUnpaidForUnit = 0;
+            
             for (const expense of building.expenses) {
                 const amount = getAmountPerUnit(expense, unit, building.units);
                 if (amount > 0) {
                     unitExpenses.push({ ...expense, amount });
-                    if ((expense.paymentStatus[unit.id] || 'unpaid') === 'unpaid') {
-                        totalUnpaid += amount;
+                    const isUnpaid = (expense.paymentStatus[unit.id] || 'unpaid') === 'unpaid';
+                    if (isUnpaid) {
+                        totalUnpaidForUnit += amount;
                     }
                 }
             }
-            // Sort expenses for the unit by date
+            
             unitExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            result[unit.id] = { unit, expenses: unitExpenses, totalUnpaid };
+            result[unit.id] = { unit, expenses: unitExpenses, totalUnpaid: totalUnpaidForUnit };
         });
         return result;
     }, [building.units, building.expenses]);
