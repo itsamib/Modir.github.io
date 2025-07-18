@@ -19,7 +19,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
-import { CopyrightFooter } from "@/components/copyright-footer";
 
 export default function Home() {
   const { buildings, addBuilding, loading, importData, exportData } = useBuildingData();
