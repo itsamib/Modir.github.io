@@ -177,18 +177,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 </PopoverContent>
             </Popover>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="distributionMethod" className="text-right text-xs">روش تقسیم</Label>
-            <Select value={distributionMethod} onValueChange={(val: Expense['distributionMethod']) => setDistributionMethod(val)}>
-                <SelectTrigger className="col-span-3"><SelectValue/></SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="unit_count">بر اساس تعداد واحدها</SelectItem>
-                    <SelectItem value="occupants">بر اساس نفرات</SelectItem>
-                    <SelectItem value="area">بر اساس متراژ</SelectItem>
-                    <SelectItem value="custom">اختصاص به واحدهای خاص</SelectItem>
-                </SelectContent>
-            </Select>
-          </div>
           
            <div className="grid grid-cols-4 items-center gap-4">
              <Label className="text-right text-xs">پرداخت برای</Label>
