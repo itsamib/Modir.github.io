@@ -253,5 +253,3 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     </Dialog>
   );
 }
-
-    
