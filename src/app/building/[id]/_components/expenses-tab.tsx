@@ -2,11 +2,11 @@
 "use client"
 
 import { useState, useMemo } from 'react';
-import { Building, Expense, Unit, useBuildingData, PaymentStatus } from "@/hooks/use-building-data"
+import { Building, Expense, Unit, useBuildingData, PaymentStatus, ChargeTo } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Users } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
@@ -34,40 +34,40 @@ interface ExpensesTabProps {
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
     let amount = 0;
     
-    // Default to 'all' if chargeTo is not specified
     const chargeTo = expense.chargeTo || 'all';
-
+    
+    // Check if the unit is applicable based on chargeTo
     if (chargeTo === 'tenant' && !unit.tenantName) return 0;
+    if (chargeTo === 'owner' && unit.tenantName) return 0;
 
-    const applicableUnitsForCalculation = allUnits.filter(u => {
-        if (chargeTo === 'tenant' && !u.tenantName) return false;
-        return true;
+    // Filter all units based on who is being charged for divisional calculations
+    const applicableUnitsForDivision = allUnits.filter(u => {
+        if (chargeTo === 'tenant') return !!u.tenantName;
+        if (chargeTo === 'owner') return !u.tenantName;
+        return true; // 'all'
     });
 
     switch (expense.distributionMethod) {
         case 'unit_count': {
-            const numApplicable = applicableUnitsForCalculation.length;
+            const numApplicable = applicableUnitsForDivision.length;
             amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
             break;
         }
         case 'occupants': {
-            const totalOccupants = applicableUnitsForCalculation.reduce((sum, u) => sum + u.occupants, 0);
+            const totalOccupants = applicableUnitsForDivision.reduce((sum, u) => sum + u.occupants, 0);
             amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
             break;
         }
         case 'area': {
-            const totalArea = applicableUnitsForCalculation.reduce((sum, u) => sum + u.area, 0);
+            const totalArea = applicableUnitsForDivision.reduce((sum, u) => sum + u.area, 0);
             amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
             break;
         }
         case 'custom': {
+            // In 'custom' mode, totalAmount is the per-unit amount.
+            // It applies only if the unit was specifically selected in the expense.
             if (expense.applicableUnits?.includes(unit.id)) {
-                 if (expense.customAmounts && expense.customAmounts[unit.id]) {
-                    amount = expense.customAmounts[unit.id];
-                 } else {
-                    const numApplicable = expense.applicableUnits?.length || 1;
-                    amount = expense.totalAmount / numApplicable;
-                 }
+                amount = expense.totalAmount;
             } else {
                 amount = 0;
             }
@@ -82,6 +82,14 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     
     return Math.ceil(amount / 500) * 500;
 };
+
+const chargeToText = (chargeTo: ChargeTo) => {
+    switch(chargeTo) {
+        case 'owner': return 'فقط مالک';
+        case 'tenant': return 'فقط مستاجر';
+        default: return 'همه ساکنین';
+    }
+}
 
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
@@ -121,21 +129,16 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         setIsAddDialogOpen(false);
     }
 
-    const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus' | 'chargeTo'>, expenseId?: string) => {
-        const fullExpenseData = {
-            ...expenseData,
-            chargeTo: expenseId ? building.expenses.find(e => e.id === expenseId)?.chargeTo || 'all' : 'all' as const,
-        };
-
+    const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, expenseId?: string) => {
         const callback = () => {
             onDataChange();
             handleCloseAddDialog();
         };
 
         if (expenseId) {
-            updateExpenseInBuilding(building.id, expenseId, fullExpenseData, callback);
+            updateExpenseInBuilding(building.id, expenseId, expenseData, callback);
         } else {
-            addExpenseToBuilding(building.id, fullExpenseData, callback);
+            addExpenseToBuilding(building.id, expenseData, callback);
         }
     }
 
@@ -214,8 +217,9 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col gap-1">
                                             <span>{expense.description}</span>
-                                            <div className="flex items-center gap-2">
-                                                {expense.paidByManager && <Badge variant="secondary" className="w-fit">پرداخت توسط مدیر</Badge>}
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="ml-1"/>پرداخت توسط مدیر</Badge>}
+                                                 <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="ml-1"/>{chargeToText(expense.chargeTo)}</Badge>
                                             </div>
                                         </div>
                                     </TableCell>

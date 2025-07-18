@@ -2,7 +2,7 @@
 "use client"
 
 import { useState } from 'react';
-import { Building, Expense, Unit } from "@/hooks/use-building-data"
+import { Building, Expense, Unit, ChargeTo } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
@@ -19,40 +19,40 @@ interface ReportsTabProps {
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
     let amount = 0;
     
-    // Default to 'all' if chargeTo is not specified
     const chargeTo = expense.chargeTo || 'all';
     
+    // Check if the unit is applicable based on chargeTo
     if (chargeTo === 'tenant' && !unit.tenantName) return 0;
+    if (chargeTo === 'owner' && unit.tenantName) return 0;
 
-    const applicableUnitsForCalculation = allUnits.filter(u => {
-        if (chargeTo === 'tenant' && !u.tenantName) return false;
-        return true;
+    // Filter all units based on who is being charged for divisional calculations
+    const applicableUnitsForDivision = allUnits.filter(u => {
+        if (chargeTo === 'tenant') return !!u.tenantName;
+        if (chargeTo === 'owner') return !u.tenantName;
+        return true; // 'all'
     });
 
     switch (expense.distributionMethod) {
         case 'unit_count': {
-             const numApplicable = applicableUnitsForCalculation.length;
-             amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
-             break;
+            const numApplicable = applicableUnitsForDivision.length;
+            amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
+            break;
         }
         case 'occupants': {
-            const totalOccupants = applicableUnitsForCalculation.reduce((sum, u) => sum + u.occupants, 0);
+            const totalOccupants = applicableUnitsForDivision.reduce((sum, u) => sum + u.occupants, 0);
             amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
             break;
         }
         case 'area': {
-            const totalArea = applicableUnitsForCalculation.reduce((sum, u) => sum + u.area, 0);
+            const totalArea = applicableUnitsForDivision.reduce((sum, u) => sum + u.area, 0);
             amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
             break;
         }
         case 'custom': {
+            // In 'custom' mode, totalAmount is the per-unit amount.
+            // It applies only if the unit was specifically selected in the expense.
             if (expense.applicableUnits?.includes(unit.id)) {
-                 if (expense.customAmounts && expense.customAmounts[unit.id]) {
-                    amount = expense.customAmounts[unit.id];
-                 } else {
-                    const numApplicable = expense.applicableUnits?.length || 1;
-                    amount = expense.totalAmount / numApplicable;
-                 }
+                amount = expense.totalAmount;
             } else {
                 amount = 0;
             }
@@ -68,7 +68,7 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     return Math.ceil(amount / 500) * 500;
 };
 
-const chargeToText = (chargeTo: Expense['chargeTo']) => {
+const chargeToText = (chargeTo: ChargeTo) => {
     switch(chargeTo) {
         case 'owner': return 'فقط مالک';
         case 'tenant': return 'فقط مستاجر';
