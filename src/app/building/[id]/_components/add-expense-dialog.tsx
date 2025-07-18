@@ -21,7 +21,7 @@ import { Calendar as CalendarIcon } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns-jalali';
-import { faIR } from 'date-fns-jalali/locale';
+import { faIR, enUS } from 'date-fns-jalali/locale';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
@@ -157,7 +157,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                     )}
                     >
                     <CalendarIcon className="ml-2 h-4 w-4" />
-                    {date ? format(date, 'd MMMM yyyy', { locale: faIR }) : <span>{t('addExpenseDialog.selectDate')}</span>}
+                    {date ? format(date, 'd MMMM yyyy', { locale: language === 'fa' ? faIR : enUS }) : <span>{t('addExpenseDialog.selectDate')}</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -166,7 +166,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                         selected={date}
                         onSelect={(newDate) => newDate && setDate(newDate)}
                         initialFocus
-                        locale={faIR}
+                        locale={language === 'fa' ? faIR : enUS}
                     />
                 </PopoverContent>
             </Popover>

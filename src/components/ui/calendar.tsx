@@ -3,7 +3,7 @@
 import * as React from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { DayPicker } from "react-day-picker"
-import { faIR } from 'date-fns/locale';
+import { faIR, enUS } from 'date-fns-jalali/locale';
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
@@ -14,12 +14,14 @@ function Calendar({
   className,
   classNames,
   showOutsideDays = true,
-  locale = faIR,
+  locale,
   ...props
 }: CalendarProps) {
+  const isRtl = locale === faIR;
   return (
     <DayPicker
       locale={locale}
+      dir={isRtl ? 'rtl' : 'ltr'}
       showOutsideDays={showOutsideDays}
       className={cn("p-2", className)}
       classNames={{
@@ -32,8 +34,8 @@ function Calendar({
           buttonVariants({ variant: "outline" }),
           "h-6 w-6 bg-transparent p-0 opacity-50 hover:opacity-100"
         ),
-        nav_button_previous: "absolute right-1",
-        nav_button_next: "absolute left-1",
+        nav_button_previous: "absolute right-1 rtl:left-1 rtl:right-auto",
+        nav_button_next: "absolute left-1 rtl:right-1 rtl:left-auto",
         table: "w-full border-collapse space-y-1",
         head_row: "flex",
         head_cell:
@@ -57,12 +59,14 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
-        ),
+        IconLeft: ({ className, ...props }) => {
+            const Icon = isRtl ? ChevronRight : ChevronLeft;
+            return <Icon className={cn("h-4 w-4", className)} {...props} />
+        },
+        IconRight: ({ className, ...props }) => {
+            const Icon = isRtl ? ChevronLeft : ChevronRight;
+            return <Icon className={cn("h-4 w-4", className)} {...props} />
+        },
       }}
       {...props}
     />

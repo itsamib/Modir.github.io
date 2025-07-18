@@ -18,6 +18,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useLanguage } from "@/context/language-context"
 
 interface ComboboxProps {
   items: { value: string; label: string }[];
@@ -40,6 +41,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = React.useState(false)
   const [inputValue, setInputValue] = React.useState(value)
+  const { direction } = useLanguage();
   
   React.useEffect(() => {
     setInputValue(value)
@@ -69,9 +71,10 @@ export function Combobox({
                 value={inputValue}
                 onChange={handleInputChange}
                 placeholder={placeholder}
+                dir={direction}
                 className={cn(
                     "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-                    "pr-10"
+                    "pr-10 rtl:pl-10 rtl:pr-3"
                 )}
                 onClick={() => setOpen(o => !o)}
             />
@@ -79,14 +82,14 @@ export function Combobox({
                 variant="ghost"
                 role="combobox"
                 aria-expanded={open}
-                className="absolute inset-y-0 right-0 px-3"
+                className="absolute inset-y-0 right-0 px-3 rtl:left-0 rtl:right-auto"
                 onClick={() => setOpen(o => !o)}
             >
                 <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
             </Button>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start" dir={direction}>
         <Command shouldFilter={false}>
           <CommandInput 
             placeholder={searchPlaceholder} 
@@ -106,7 +109,7 @@ export function Combobox({
                 >
                   <Check
                     className={cn(
-                      "ml-2 h-4 w-4",
+                      "ml-2 h-4 w-4 rtl:ml-0 rtl:mr-2",
                       value === item.value ? "opacity-100" : "opacity-0"
                     )}
                   />

@@ -30,7 +30,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { format, getYear } from 'date-fns-jalali';
-import { faIR } from 'date-fns-jalali/locale';
+import { faIR, enUS } from 'date-fns-jalali/locale';
 import { useLanguage } from '@/context/language-context';
 
 interface ExpensesTabProps {
@@ -101,7 +101,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const [monthFilter, setMonthFilter] = useState<string>("all");
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
     const [viewMode, setViewMode] = useState<'byDate' | 'byUnit'>('byDate');
-    const { t, language } = useLanguage();
+    const { t, language, direction } = useLanguage();
 
     const chargeToText = (chargeTo: ChargeTo) => {
         switch(chargeTo) {
@@ -240,7 +240,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                     </div>
                                 </div>
                             </TableCell>
-                            <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
+                            <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: language === 'fa' ? faIR : enUS })}</TableCell>
                             <TableCell>{formatNumber(Math.ceil(getTotalAmountForDisplay(expense)))}</TableCell>
                             {building.units.map(unit => {
                                 const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
@@ -311,7 +311,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                     {expenses.map(expense => (
                                         <TableRow key={`${unit.id}-${expense.id}`}>
                                             <TableCell className="font-medium">{expense.description}</TableCell>
-                                            <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
+                                            <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: language === 'fa' ? faIR : enUS })}</TableCell>
                                             <TableCell>{formatNumber(expense.amount)}</TableCell>
                                             <TableCell className="flex justify-center">
                                                 <PaymentStatusBadge 
@@ -348,7 +348,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                  <div className="flex flex-col gap-4 pt-4 border-t mt-4">
                      <div className="flex flex-wrap gap-4 items-center">
                         <Label>{t('expensesTab.viewMode.title')}</Label>
-                        <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-4">
+                        <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-4" dir={direction}>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="byDate" id="byDate" />
                                 <Label htmlFor="byDate" className="font-normal flex items-center gap-2"><Calendar size={16}/> {t('expensesTab.viewMode.byDate')}</Label>
@@ -363,17 +363,17 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     {viewMode === 'byDate' && (
                         <div className="flex flex-wrap gap-4 items-center">
                             <SlidersHorizontal className="text-muted-foreground" />
-                            <Select value={yearFilter} onValueChange={setYearFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                            <Select value={yearFilter} onValueChange={setYearFilter} dir={direction}>
                                 <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByYear')} /></SelectTrigger>
                                 <SelectContent>
                                     {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? t('expensesTab.allYears') : formatNumber(parseInt(y))}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                             <Select value={monthFilter} onValueChange={setMonthFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                             <Select value={monthFilter} onValueChange={setMonthFilter} dir={direction}>
                                 <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByMonth')} /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">{t('expensesTab.allMonths')}</SelectItem>
-                                    {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: faIR })}</SelectItem>)}
+                                    {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: language === 'fa' ? faIR : enUS })}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
