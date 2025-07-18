@@ -94,6 +94,8 @@ export const useBuildingData = () => {
         occupants: 2,
         ownerName: '', // Let user fill this
         tenantName: null,
+        ownerPhone: '',
+        tenantPhone: ''
       })),
       expenses: [],
     };

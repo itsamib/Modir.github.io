@@ -83,7 +83,9 @@
         "areaLabel": "Area (m²)",
         "occupantsLabel": "Number of Occupants",
         "ownerNameLabel": "Owner Name",
+        "ownerPhoneLabel": "Owner Phone",
         "tenantNameLabel": "Tenant Name",
+        "tenantPhoneLabel": "Tenant Phone",
         "isVacantLabel": "Unit is vacant",
         "errorOwnerRequired": "Owner name cannot be empty."
     },
@@ -146,7 +148,7 @@
             "occupants": "By number of occupants",
             "area": "By area",
             "custom": "Assign to each unit",
-            "general": "General Building Expense"
+            "general": "General Building Expense (No Unit Split)"
         },
         "categories": {
             "monthly_charge": "Monthly Charge",

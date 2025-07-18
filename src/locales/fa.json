@@ -83,7 +83,9 @@
         "areaLabel": "متراژ (متر مربع)",
         "occupantsLabel": "تعداد نفرات",
         "ownerNameLabel": "نام مالک",
+        "ownerPhoneLabel": "تلفن مالک",
         "tenantNameLabel": "نام مستاجر",
+        "tenantPhoneLabel": "تلفن مستاجر",
         "isVacantLabel": "واحد خالی است",
         "errorOwnerRequired": "نام مالک نمی‌تواند خالی باشد."
     },

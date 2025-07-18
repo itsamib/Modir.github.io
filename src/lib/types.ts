@@ -9,6 +9,8 @@ export interface Unit {
   occupants: number;
   ownerName: string;
   tenantName: string | null;
+  ownerPhone?: string;
+  tenantPhone?: string;
 }
 
 export interface Expense {

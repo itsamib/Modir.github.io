@@ -73,7 +73,9 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
                             <TableHead>{t('unitsTab.table.area')}</TableHead>
                             <TableHead>{t('unitsTab.table.occupants')}</TableHead>
                             <TableHead>{t('unitsTab.table.ownerName')}</TableHead>
+                            <TableHead>{t('addUnitDialog.ownerPhoneLabel')}</TableHead>
                             <TableHead>{t('unitsTab.table.tenantName')}</TableHead>
+                            <TableHead>{t('addUnitDialog.tenantPhoneLabel')}</TableHead>
                             <TableHead>{t('unitsTab.table.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -84,7 +86,9 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
                                 <TableCell>{unit.area}</TableCell>
                                 <TableCell>{unit.occupants}</TableCell>
                                 <TableCell>{unit.ownerName}</TableCell>
+                                <TableCell>{unit.ownerPhone || ' - '}</TableCell>
                                 <TableCell>{unit.tenantName || ' - '}</TableCell>
+                                <TableCell>{unit.tenantPhone || ' - '}</TableCell>
                                 <TableCell>
                                     <Button variant="ghost" size="icon" onClick={() => openEditDialog(unit)}>
                                         <Edit className="h-4 w-4" />

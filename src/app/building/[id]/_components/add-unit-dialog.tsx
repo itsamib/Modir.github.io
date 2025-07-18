@@ -31,7 +31,9 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     area: 0,
     occupants: 1,
     ownerName: '',
-    tenantName: ''
+    ownerPhone: '',
+    tenantName: '',
+    tenantPhone: ''
   });
   const [isVacant, setIsVacant] = useState(false);
   const [error, setError] = useState('');
@@ -47,12 +49,14 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
                 area: unit.area,
                 occupants: vacant ? 0 : unit.occupants,
                 ownerName: unit.ownerName,
+                ownerPhone: unit.ownerPhone || '',
                 tenantName: vacant ? '' : (unit.tenantName || ''),
+                tenantPhone: vacant ? '' : (unit.tenantPhone || ''),
             });
         } else {
             setIsVacant(false);
             setFormData({
-                customName: '', area: 0, occupants: 1, ownerName: '', tenantName: ''
+                customName: '', area: 0, occupants: 1, ownerName: '', ownerPhone: '', tenantName: '', tenantPhone: ''
             });
         }
         setError('');
@@ -64,7 +68,8 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
         setFormData(prev => ({
             ...prev,
             occupants: 0,
-            tenantName: ''
+            tenantName: '',
+            tenantPhone: ''
         }));
     } else {
         // If it was vacant and now is not, reset occupants to 1 if it was 0
@@ -96,7 +101,9 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     onSave({
         ...formData,
         name: finalName,
+        ownerPhone: formData.ownerPhone.trim() || undefined,
         tenantName: isVacant ? null : (formData.tenantName.trim() || null),
+        tenantPhone: isVacant ? undefined : (formData.tenantPhone.trim() || undefined),
         occupants: isVacant ? 0 : Math.max(1, formData.occupants), // Ensure occupants is at least 1 if not vacant
         area: formData.area
     });
@@ -124,6 +131,10 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
             <Label htmlFor="ownerName" className="text-right">{t('addUnitDialog.ownerNameLabel')}</Label>
             <Input id="ownerName" value={formData.ownerName} onChange={handleChange} className="col-span-3"/>
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="ownerPhone" className="text-right">{t('addUnitDialog.ownerPhoneLabel')}</Label>
+            <Input id="ownerPhone" value={formData.ownerPhone} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')} />
+          </div>
 
           <Separator />
           
@@ -139,6 +150,10 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tenantName" className="text-right">{t('addUnitDialog.tenantNameLabel')}</Label>
             <Input id="tenantName" value={formData.tenantName || ''} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')} disabled={isVacant}/>
+          </div>
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="tenantPhone" className="text-right">{t('addUnitDialog.tenantPhoneLabel')}</Label>
+            <Input id="tenantPhone" value={formData.tenantPhone || ''} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')} disabled={isVacant}/>
           </div>
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>
