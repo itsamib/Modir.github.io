@@ -284,7 +284,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse ltr:flex-row rtl:justify-end ltr:justify-start">
+                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse ltr:flex-row w-full rtl:text-right ltr:text-left">
                         <AlertTriangle className="text-destructive"/>
                         {t('reportsTab.overdue.title')}
                     </CardTitle>
