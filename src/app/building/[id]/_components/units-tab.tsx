@@ -20,7 +20,7 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
     const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
     const { t } = useLanguage();
 
-    const handleSaveUnit = (unitData: Omit<Unit, 'id'>) => {
+    const handleSaveUnit = (unitData: Omit<Unit, 'id' | 'name' | 'unitNumber'> & { name: string; }) => {
         const callback = () => {
             onDataChange();
             setIsDialogOpen(false);
@@ -71,7 +71,7 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
                     <TableBody>
                         {building.units.map(unit => (
                             <TableRow key={unit.id}>
-                                <TableCell className="font-medium">{unit.name}</TableCell>
+                                <TableCell className="font-medium">{t(unit.name, {number: unit.unitNumber})}</TableCell>
                                 <TableCell>{unit.area}</TableCell>
                                 <TableCell>{unit.occupants}</TableCell>
                                 <TableCell>{unit.ownerName}</TableCell>

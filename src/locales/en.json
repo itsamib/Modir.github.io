@@ -68,19 +68,20 @@
             "occupants": "Occupants",
             "ownerName": "Owner Name",
             "tenantName": "Tenant Name",
-            "actions": "Actions"
+            "actions": "Actions",
+            "defaultUnitName": "Unit {number}"
         }
     },
     "addUnitDialog": {
         "addTitle": "Add New Unit",
         "editTitle": "Edit Unit",
         "description": "Enter or edit the unit information.",
-        "nameLabel": "Unit Name",
+        "nameLabel": "Unit Name (Optional)",
         "areaLabel": "Area (m²)",
         "occupantsLabel": "Number of Occupants",
         "ownerNameLabel": "Owner Name",
         "tenantNameLabel": "Tenant Name",
-        "errorNameRequired": "Unit name and owner name cannot be empty."
+        "errorOwnerRequired": "Owner name cannot be empty."
     },
     "expensesTab": {
         "title": "Expenses List",
@@ -126,7 +127,7 @@
         "addTitle": "Add New Expense",
         "editTitle": "Edit Expense",
         "description": "Enter the expense information.",
-        "expenseDescription": "Expense Description",
+        "expenseDescription": "Expense Type",
         "otherPlaceholder": "Enter custom description...",
         "totalAmount": "Total Amount",
         "amountPerUnit": "Amount Per Unit",

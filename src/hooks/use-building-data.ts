@@ -88,10 +88,11 @@ export const useBuildingData = () => {
       name,
       units: Array.from({ length: unitCount }, (_, i) => ({
         id: crypto.randomUUID(),
-        name: `واحد ${i + 1}`,
+        name: 'unitsTab.table.defaultUnitName', // Use translation key
+        unitNumber: i + 1,
         area: 100,
         occupants: 2,
-        ownerName: `مالک واحد ${i + 1}`,
+        ownerName: '', // Let user fill this
         tenantName: null,
       })),
       expenses: [],
@@ -103,11 +104,19 @@ export const useBuildingData = () => {
       return memoryState.find(b => b.id === id);
   }, []);
 
-  const addUnitToBuilding = (buildingId: string, unit: Omit<Unit, 'id'>, callback?: () => void) => {
-      const newUnit = { ...unit, id: crypto.randomUUID() };
-      saveData(prev => prev.map(b => 
-          b.id === buildingId ? { ...b, units: [...b.units, newUnit] } : b
-      ), callback);
+  const addUnitToBuilding = (buildingId: string, unit: Omit<Unit, 'id'| 'unitNumber'>, callback?: () => void) => {
+      saveData(prev => prev.map(b => {
+          if (b.id === buildingId) {
+              const newUnitNumber = b.units.length > 0 ? Math.max(...b.units.map(u => u.unitNumber)) + 1 : 1;
+              const newUnit = { 
+                  ...unit, 
+                  id: crypto.randomUUID(),
+                  unitNumber: newUnitNumber
+              };
+              return { ...b, units: [...b.units, newUnit] };
+          }
+          return b;
+      }), callback);
   };
 
   const updateUnitInBuilding = (buildingId: string, updatedUnit: Unit, callback?: () => void) => {

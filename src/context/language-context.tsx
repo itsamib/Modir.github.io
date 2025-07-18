@@ -45,7 +45,8 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
     for (const k of keys) {
       result = result?.[k];
       if (result === undefined) {
-        return key; // Return key if not found
+        // If the key is not found in translations, it might be a literal string (like a custom unit name)
+        return key; 
       }
     }
     

@@ -77,6 +77,14 @@ export function ReportsTab({ building }: ReportsTabProps) {
     const formatNumber = (num: number) => {
         return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(num);
     }
+    
+    const getExpenseDescription = (description: string) => {
+        // If description is a translation key, translate it. Otherwise, return it as is.
+        if (description.includes('.')) {
+            return t(description);
+        }
+        return description;
+    }
 
     const stats = useMemo(() => {
         const totalUnits = building.units.length;
@@ -116,7 +124,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             return {
                 unitId: unit.id,
-                unitName: unit.name,
+                unitName: t(unit.name, {number: unit.unitNumber}),
                 amount: unpaidAmount
             };
         }).filter(debt => debt.amount > 0);
@@ -124,7 +132,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
         return { totalUnits, totalOccupants, vacantUnits, fundBalance, overdueDebts, fundInflow, fundOutflow };
 
-    }, [building]);
+    }, [building, t]);
 
 
     const handleExport = () => {
@@ -142,14 +150,14 @@ export function ReportsTab({ building }: ReportsTabProps) {
                     }
 
                     return {
-                        'شرح هزینه': expense.description,
+                        'شرح هزینه': getExpenseDescription(expense.description),
                         'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
                         'مبلغ کل هزینه': Math.ceil(totalExpenseAmount),
                         'روش تقسیم': expense.distributionMethod,
                         'پرداخت توسط مدیر': expense.paidByManager ? 'بله' : 'خیر',
                         'کسر از صندوق': expense.deductFromFund ? 'بله' : 'خیر',
                         'شارژ ساختمان': expense.isBuildingCharge ? 'بله' : 'خیر',
-                        'واحد': unit.name,
+                        'واحد': t(unit.name, { number: unit.unitNumber }),
                         'مالک': unit.ownerName,
                         'مستاجر': unit.tenantName || '-',
                         'سهم واحد': amount,

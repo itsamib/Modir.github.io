@@ -18,25 +18,27 @@ import { useLanguage } from '@/context/language-context';
 interface AddUnitDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (unitData: Omit<Unit, 'id'>) => void;
+  onSave: (unitData: Omit<Unit, 'id' | 'name' | 'unitNumber'> & { name: string; }) => void;
   unit: Unit | null;
 }
 
 export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogProps) {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
-    name: '',
+    customName: '',
     area: 0,
     occupants: 1,
     ownerName: '',
     tenantName: ''
   });
   const [error, setError] = useState('');
-  const { t } = useLanguage();
 
   useEffect(() => {
     if (unit) {
+      // If the name is not a translation key, it's a custom name.
+      const isCustomName = !unit.name.startsWith('unitsTab.table.defaultUnitName');
       setFormData({
-        name: unit.name,
+        customName: isCustomName ? unit.name : '',
         area: unit.area,
         occupants: unit.occupants,
         ownerName: unit.ownerName,
@@ -44,7 +46,7 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
       });
     } else {
       setFormData({
-        name: '', area: 0, occupants: 1, ownerName: '', tenantName: ''
+        customName: '', area: 0, occupants: 1, ownerName: '', tenantName: ''
       });
     }
   }, [unit, isOpen]);
@@ -58,13 +60,18 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
   };
 
   const handleSave = () => {
-    if (!formData.name.trim() || !formData.ownerName.trim()) {
-        setError(t('addUnitDialog.errorNameRequired'));
+    if (!formData.ownerName.trim()) {
+        setError(t('addUnitDialog.errorOwnerRequired'));
         return;
     }
     setError('');
+
+    // If custom name is empty, use the default translation key. The unitNumber will be handled in useBuildingData.
+    const finalName = formData.customName.trim() || (unit?.name ?? 'unitsTab.table.defaultUnitName');
+    
     onSave({
         ...formData,
+        name: finalName,
         tenantName: formData.tenantName.trim() || null
     });
   };
@@ -80,8 +87,8 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">{t('addUnitDialog.nameLabel')}</Label>
-            <Input id="name" value={formData.name} onChange={handleChange} className="col-span-3"/>
+            <Label htmlFor="customName" className="text-right">{t('addUnitDialog.nameLabel')}</Label>
+            <Input id="customName" value={formData.customName} onChange={handleChange} className="col-span-3" placeholder={t(unit?.name || 'unitsTab.table.defaultUnitName', { number: unit?.unitNumber })}/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="area" className="text-right">{t('addUnitDialog.areaLabel')}</Label>
@@ -97,7 +104,7 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="tenantName" className="text-right">{t('addUnitDialog.tenantNameLabel')}</Label>
-            <Input id="tenantName" value={formData.tenantName} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')}/>
+            <Input id="tenantName" value={formData.tenantName || ''} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')}/>
           </div>
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>

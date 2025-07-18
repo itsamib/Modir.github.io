@@ -41,11 +41,11 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     const { t, language, direction } = useLanguage();
     
     const expenseCategories = useMemo(() => [
-        { value: 'monthly_charge', label: t('addExpenseDialog.categories.monthly_charge') },
-        { value: 'utility_bill', label: t('addExpenseDialog.categories.utility_bill') },
-        { value: 'cleaning', label: t('addExpenseDialog.categories.cleaning') },
-        { value: 'repairs', label: t('addExpenseDialog.categories.repairs') },
-        { value: 'other', label: t('addExpenseDialog.categories.other') },
+        { value: 'monthly_charge', key: 'addExpenseDialog.categories.monthly_charge', label: t('addExpenseDialog.categories.monthly_charge') },
+        { value: 'utility_bill', key: 'addExpenseDialog.categories.utility_bill', label: t('addExpenseDialog.categories.utility_bill') },
+        { value: 'cleaning', key: 'addExpenseDialog.categories.cleaning', label: t('addExpenseDialog.categories.cleaning') },
+        { value: 'repairs', key: 'addExpenseDialog.categories.repairs', label: t('addExpenseDialog.categories.repairs') },
+        { value: 'other', key: 'addExpenseDialog.categories.other', label: t('addExpenseDialog.categories.other') },
     ], [t]);
 
     const [description, setDescription] = useState('');
@@ -62,11 +62,12 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     useEffect(() => {
         if (isOpen) {
             if (expense) {
-                const foundCategory = expenseCategories.find(c => c.label === expense.description);
+                const foundCategory = expenseCategories.find(c => c.key === expense.description);
                 if (foundCategory) {
                     setCategory(foundCategory.value as ExpenseCategory);
                     setDescription('');
                 } else {
+                    // It must be a custom description
                     setCategory('other');
                     setDescription(expense.description);
                 }
@@ -110,9 +111,14 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     };
 
     const handleSave = () => {
-        const finalDescription = category === 'other' ? description.trim() : expenseCategories.find(c => c.value === category)?.label || '';
+        let finalDescription: string;
+        if (category === 'other') {
+            finalDescription = description.trim();
+        } else {
+            finalDescription = expenseCategories.find(c => c.value === category)?.key || 'addExpenseDialog.categories.other';
+        }
 
-        if (!finalDescription || totalAmount === '' || totalAmount <= 0) {
+        if ((category === 'other' && !finalDescription) || totalAmount === '' || totalAmount <= 0) {
             setError(t('addExpenseDialog.errorInvalid'));
             return;
         }
@@ -254,7 +260,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                                     checked={applicableUnits.includes(unit.id)}
                                     onCheckedChange={(checked) => handleUnitSelection(unit.id, checked as boolean)}
                                 />
-                                <Label htmlFor={`unit-${unit.id}`} className="font-normal">{unit.name}</Label>
+                                <Label htmlFor={`unit-${unit.id}`} className="font-normal">{t(unit.name, { number: unit.unitNumber })}</Label>
                             </div>
                         ))}
                     </div>

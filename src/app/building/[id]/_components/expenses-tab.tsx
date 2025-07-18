@@ -213,6 +213,14 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const formatNumber = (num: number) => {
         return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(num);
     }
+
+    const getExpenseDescription = (description: string) => {
+        // If description is a translation key, translate it. Otherwise, return it as is.
+        if (description.includes('.')) {
+            return t(description);
+        }
+        return description;
+    }
     
     const renderByDateView = () => (
         <div className="overflow-x-auto">
@@ -223,7 +231,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <TableHead>{t('expensesTab.table.date')}</TableHead>
                         <TableHead>{t('expensesTab.table.totalAmount')}</TableHead>
                         {building.units.map(unit => (
-                            <TableHead key={unit.id} className="text-center">{unit.name}</TableHead>
+                            <TableHead key={unit.id} className="text-center">{t(unit.name, { number: unit.unitNumber })}</TableHead>
                         ))}
                         <TableHead className="text-center">{t('expensesTab.table.actions')}</TableHead>
                     </TableRow>
@@ -233,7 +241,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <TableRow key={expense.id}>
                             <TableCell className="font-medium">
                                 <div className="flex flex-col gap-1">
-                                    <span>{expense.description}</span>
+                                    <span>{getExpenseDescription(expense.description)}</span>
                                     <div className="flex items-center gap-2 flex-wrap">
                                         {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="mx-1"/>{t('expensesTab.badges.paidByManager')}</Badge>}
                                          <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="mx-1"/>{chargeToText(expense.chargeTo)}</Badge>
@@ -288,7 +296,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                 <AccordionItem value={unit.id} key={unit.id}>
                     <AccordionTrigger>
                        <div className="flex justify-between w-full items-center pr-2">
-                            <span>{unit.name}</span>
+                            <span>{t(unit.name, { number: unit.unitNumber })}</span>
                             {totalUnpaid > 0 ? (
                                 <Badge variant="destructive">{t('expensesTab.unpaidAmount', {amount: formatNumber(totalUnpaid)})}</Badge>
                             ) : (
@@ -310,7 +318,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                 <TableBody>
                                     {expenses.map(expense => (
                                         <TableRow key={`${unit.id}-${expense.id}`}>
-                                            <TableCell className="font-medium">{expense.description}</TableCell>
+                                            <TableCell className="font-medium">{getExpenseDescription(expense.description)}</TableCell>
                                             <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: language === 'fa' ? faIR : enUS })}</TableCell>
                                             <TableCell>{formatNumber(expense.amount)}</TableCell>
                                             <TableCell className="flex justify-center">
@@ -335,12 +343,12 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     return (
         <Card>
             <CardHeader>
-                <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                <div className="flex justify-between items-start flex-col sm:flex-row gap-4">
+                    <div className="flex-1 space-y-1">
                         <CardTitle>{t('expensesTab.title')}</CardTitle>
                         <CardDescription>{t('expensesTab.description')}</CardDescription>
                     </div>
-                     <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2 rtl:ml-0 ltr:ml-auto rtl:mr-auto">
+                     <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2 rtl:ml-0 ltr:ml-auto rtl:mr-auto shrink-0">
                         <PlusCircle size={20} />
                         <span>{t('expensesTab.addExpense')}</span>
                     </Button>

@@ -68,19 +68,20 @@
             "occupants": "تعداد نفرات",
             "ownerName": "نام مالک",
             "tenantName": "نام مستاجر",
-            "actions": "عملیات"
+            "actions": "عملیات",
+            "defaultUnitName": "واحد {number}"
         }
     },
     "addUnitDialog": {
         "addTitle": "افزودن واحد جدید",
         "editTitle": "ویرایش واحد",
         "description": "اطلاعات واحد را وارد یا ویرایش کنید.",
-        "nameLabel": "نام واحد",
+        "nameLabel": "نام واحد (اختیاری)",
         "areaLabel": "متراژ (متر مربع)",
         "occupantsLabel": "تعداد نفرات",
         "ownerNameLabel": "نام مالک",
         "tenantNameLabel": "نام مستاجر",
-        "errorNameRequired": "نام واحد و نام مالک نمی‌توانند خالی باشند."
+        "errorOwnerRequired": "نام مالک نمی‌تواند خالی باشد."
     },
     "expensesTab": {
         "title": "لیست هزینه‌ها",

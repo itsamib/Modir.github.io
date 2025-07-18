@@ -3,7 +3,8 @@ export type ChargeTo = "all" | "owner" | "tenant";
 
 export interface Unit {
   id: string;
-  name: string;
+  name: string; // Can be a translation key or a custom string
+  unitNumber: number;
   area: number;
   occupants: number;
   ownerName: string;
@@ -13,7 +14,7 @@ export interface Unit {
 export interface Expense {
   id: string;
   buildingId: string;
-  description: string;
+  description: string; // Can be a translation key or a custom string
   totalAmount: number;
   date: string; // ISO string
   distributionMethod: "unit_count" | "occupants" | "area" | "custom";
