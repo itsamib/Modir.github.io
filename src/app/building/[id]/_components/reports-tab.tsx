@@ -89,7 +89,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
     const stats = useMemo(() => {
         const totalUnits = building.units.length;
         const totalOccupants = building.units.reduce((sum, unit) => sum + unit.occupants, 0);
-        const vacantUnits = building.units.filter(unit => !unit.tenantName).length;
+        const vacantUnits = building.units.filter(unit => unit.tenantName === null && unit.occupants === 0).length;
 
         const fundInflow = building.expenses
             .filter(e => e.isBuildingCharge)
