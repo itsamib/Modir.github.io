@@ -217,7 +217,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
         <div className="space-y-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>{t('reportsTab.stats.title')}</CardTitle>
+                    <CardTitle className="rtl:text-right ltr:text-left">{t('reportsTab.stats.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <Card className="p-4 bg-muted/50">
@@ -257,7 +257,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{t('reportsTab.fund.title')}</CardTitle>
+                    <CardTitle className="rtl:text-right ltr:text-left">{t('reportsTab.fund.title')}</CardTitle>
                 </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-center p-6 rounded-lg bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
@@ -284,11 +284,11 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
+                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse ltr:flex-row rtl:justify-end ltr:justify-start">
                         <AlertTriangle className="text-destructive"/>
                         {t('reportsTab.overdue.title')}
                     </CardTitle>
-                    <CardDescription>{t('reportsTab.overdue.description')}</CardDescription>
+                    <CardDescription className="rtl:text-right ltr:text-left">{t('reportsTab.overdue.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {stats.overdueDebts.length > 0 ? (
@@ -308,11 +308,11 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>{t('reportsTab.export.title')}</CardTitle>
-                    <CardDescription>{t('reportsTab.export.description')}</CardDescription>
+                    <CardTitle className="rtl:text-right ltr:text-left">{t('reportsTab.export.title')}</CardTitle>
+                    <CardDescription className="rtl:text-right ltr:text-left">{t('reportsTab.export.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="space-y-4">
+                    <div className="space-y-4 rtl:text-right ltr:text-left">
                         <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
                         <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType} dir={language === 'fa' ? 'rtl' : 'ltr'}>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -328,7 +328,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
                         </RadioGroup>
                     </div>
-                    <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2">
+                    <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2 rtl:float-right ltr:float-left">
                         <Download size={20}/>
                         <span>{t('reportsTab.exportButton')}</span>
                     </Button>
