@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useToast } from "@/hooks/use-toast";
+import { CopyrightFooter } from "@/components/copyright-footer";
 
 export default function Home() {
   const { buildings, addBuilding, loading, importData, exportData } = useBuildingData();
@@ -150,10 +151,12 @@ export default function Home() {
           <div className="text-center py-16 border-2 border-dashed rounded-lg">
               <h2 className="text-xl font-semibold text-muted-foreground">{t('home.noBuildingsFound')}</h2>
               <p className="text-muted-foreground mt-2">{t('home.noBuildingsCTA')}</p>
+              <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">{t('home.newBuilding')}</Button>
           </div>
         ) : null}
 
       </main>
+       {isClient && <CopyrightFooter />}
       <CreateBuildingDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}

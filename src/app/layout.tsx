@@ -3,7 +3,6 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { LanguageProvider } from '@/context/language-context';
 import { AppBody } from '@/components/app-body';
-import { CopyrightFooter } from '@/components/copyright-footer';
 
 export const metadata: Metadata = {
   title: 'حسابدار ساختمانی',
@@ -29,7 +28,6 @@ export default function RootLayout({
                 {children}
               </div>
               <Toaster />
-              <CopyrightFooter />
             </AppBody>
         </body>
       </html>

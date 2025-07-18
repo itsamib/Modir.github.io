@@ -1,3 +1,4 @@
+import { CopyrightFooter } from "@/components/copyright-footer";
 import { Header } from "@/components/header";
 import { BuildingDashboard } from "./_components/building-dashboard";
 
@@ -14,6 +15,7 @@ export default function BuildingPage({ params }: BuildingPageProps) {
       <main className="flex-grow container mx-auto px-4 py-8">
         <BuildingDashboard buildingId={params.id} />
       </main>
+      <CopyrightFooter />
     </div>
   )
 }
