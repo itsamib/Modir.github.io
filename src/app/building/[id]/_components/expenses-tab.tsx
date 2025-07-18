@@ -6,7 +6,7 @@ import { Building, Expense, Unit, useBuildingData, PaymentStatus } from "@/hooks
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Home, User, Users } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2 } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
@@ -34,21 +34,13 @@ interface ExpensesTabProps {
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
     let amount = 0;
     
-    // Determine if the unit should be charged based on the chargeTo field
+    // Default to 'all' if chargeTo is not specified
     const chargeTo = expense.chargeTo || 'all';
-    const isTenantOnlyCharge = chargeTo === 'tenant';
-    const isOwnerOnlyCharge = chargeTo === 'owner';
-    
-    // If it's a tenant-only charge, but the unit has no tenant, the unit is not applicable.
-    if (isTenantOnlyCharge && !unit.tenantName) return 0;
-    // If it's an owner-only charge for a unit that has a tenant, the charge is for the owner, not the tenant.
-    // The unit itself is still applicable for calculation base.
 
-    // Filter units that are part of the calculation base
+    if (chargeTo === 'tenant' && !unit.tenantName) return 0;
+
     const applicableUnitsForCalculation = allUnits.filter(u => {
-        if (isTenantOnlyCharge && !u.tenantName) return false;
-        // For custom distribution, applicability is handled later
-        if (expense.distributionMethod === 'custom') return true;
+        if (chargeTo === 'tenant' && !u.tenantName) return false;
         return true;
     });
 
@@ -86,27 +78,11 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
             break;
     }
 
-    // After calculating the base amount, ensure it's not charged if the specific person isn't present
-    if (isTenantOnlyCharge && !unit.tenantName) return 0;
-    // For owner-only charges, the amount is calculated, but it's the owner's responsibility.
-    // The UI should show this.
     if (amount === 0) return 0;
     
     return Math.ceil(amount / 500) * 500;
 };
 
-const ChargeToBadge = ({ chargeTo }: { chargeTo: Expense['chargeTo'] }) => {
-    if (!chargeTo || chargeTo === 'all') {
-        return <Badge variant="outline" className="flex items-center gap-1"><Users size={12} /><span>همه ساکنین</span></Badge>;
-    }
-    if (chargeTo === 'owner') {
-        return <Badge variant="outline" className="flex items-center gap-1"><Home size={12} /><span>فقط مالک</span></Badge>;
-    }
-    if (chargeTo === 'tenant') {
-        return <Badge variant="outline" className="flex items-center gap-1"><User size={12} /><span>فقط مستاجر</span></Badge>;
-    }
-    return null;
-}
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const { addExpenseToBuilding, updateExpenseInBuilding, updateExpensePaymentStatus, deleteExpenseFromBuilding } = useBuildingData();
@@ -145,16 +121,21 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         setIsAddDialogOpen(false);
     }
 
-    const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, expenseId?: string) => {
+    const handleSaveExpense = (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus' | 'chargeTo'>, expenseId?: string) => {
+        const fullExpenseData = {
+            ...expenseData,
+            chargeTo: expenseId ? building.expenses.find(e => e.id === expenseId)?.chargeTo || 'all' : 'all' as const,
+        };
+
         const callback = () => {
             onDataChange();
             handleCloseAddDialog();
         };
 
         if (expenseId) {
-            updateExpenseInBuilding(building.id, expenseId, expenseData, callback);
+            updateExpenseInBuilding(building.id, expenseId, fullExpenseData, callback);
         } else {
-            addExpenseToBuilding(building.id, expenseData, callback);
+            addExpenseToBuilding(building.id, fullExpenseData, callback);
         }
     }
 
@@ -235,7 +216,6 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                             <span>{expense.description}</span>
                                             <div className="flex items-center gap-2">
                                                 {expense.paidByManager && <Badge variant="secondary" className="w-fit">پرداخت توسط مدیر</Badge>}
-                                                <ChargeToBadge chargeTo={expense.chargeTo} />
                                             </div>
                                         </div>
                                     </TableCell>

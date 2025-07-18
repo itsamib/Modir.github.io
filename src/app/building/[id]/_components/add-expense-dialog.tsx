@@ -24,13 +24,12 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns-jalali';
 import { faIR } from 'date-fns/locale/fa-IR';
 import { cn } from '@/lib/utils';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus'>, expenseId?: string) => void;
+  onSave: (expenseData: Omit<Expense, 'id' | 'buildingId' | 'paymentStatus' | 'chargeTo'>, expenseId?: string) => void;
   units: Unit[];
   expense: Expense | null;
 }
@@ -49,7 +48,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     const [date, setDate] = useState<Date>(new Date());
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
-    const [chargeTo, setChargeTo] = useState<ChargeTo>('all');
     const [applicableUnits, setApplicableUnits] = useState<string[]>([]);
     const [error, setError] = useState('');
 
@@ -61,7 +59,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setDate(new Date(expense.date));
                 setDistributionMethod(expense.distributionMethod);
                 setPaidByManager(expense.paidByManager);
-                setChargeTo(expense.chargeTo || 'all');
                 setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
             } else {
                 setDescription('');
@@ -69,7 +66,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setDate(new Date());
                 setDistributionMethod('unit_count');
                 setPaidByManager(false);
-                setChargeTo('all');
                 setApplicableUnits(units.map(u => u.id));
             }
             setError('');
@@ -99,7 +95,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             date: date.toISOString(),
             distributionMethod,
             paidByManager,
-            chargeTo,
             applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
         }, expense?.id);
     };
@@ -188,29 +183,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 </SelectContent>
             </Select>
           </div>
-
-          <div className="grid grid-cols-4 items-center gap-4">
-              <Label className="text-right text-xs">پرداخت برای</Label>
-              <RadioGroup 
-                value={chargeTo} 
-                onValueChange={(val: ChargeTo) => setChargeTo(val)}
-                className="col-span-3 flex items-center space-x-4 space-x-reverse"
-              >
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                      <RadioGroupItem value="all" id="r-all" />
-                      <Label htmlFor="r-all" className="text-xs font-normal">همه ساکنین</Label>
-                  </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                      <RadioGroupItem value="owner" id="r-owner" />
-                      <Label htmlFor="r-owner" className="text-xs font-normal">فقط مالک</Label>
-                  </div>
-                  <div className="flex items-center space-x-2 space-x-reverse">
-                      <RadioGroupItem value="tenant" id="r-tenant" />
-                      <Label htmlFor="r-tenant" className="text-xs font-normal">فقط مستاجر</Label>
-                  </div>
-              </RadioGroup>
-          </div>
-
+          
           {distributionMethod === 'custom' && (
               <div className="col-span-4 border rounded-md p-4 space-y-3">
                 <Label className="font-semibold text-xs">واحدهای مورد نظر را انتخاب کنید:</Label>
@@ -252,5 +225,3 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     </Dialog>
   );
 }
-
-    

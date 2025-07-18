@@ -19,18 +19,13 @@ interface ReportsTabProps {
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
     let amount = 0;
     
-    // Determine if the unit should be charged based on the chargeTo field
+    // Default to 'all' if chargeTo is not specified
     const chargeTo = expense.chargeTo || 'all';
-    const isTenantOnlyCharge = chargeTo === 'tenant';
-    const isOwnerOnlyCharge = chargeTo === 'owner';
     
-    // If it's a tenant-only charge, but the unit has no tenant, the unit is not applicable.
-    if (isTenantOnlyCharge && !unit.tenantName) return 0;
+    if (chargeTo === 'tenant' && !unit.tenantName) return 0;
 
-    // Filter units that are part of the calculation base
     const applicableUnitsForCalculation = allUnits.filter(u => {
-        if (isTenantOnlyCharge && !u.tenantName) return false;
-        if (expense.distributionMethod === 'custom') return true;
+        if (chargeTo === 'tenant' && !u.tenantName) return false;
         return true;
     });
 
@@ -67,8 +62,6 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
             amount = 0;
             break;
     }
-
-    if (isTenantOnlyCharge && !unit.tenantName) return 0;
 
     if (amount === 0) return 0;
     
