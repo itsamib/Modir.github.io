@@ -34,20 +34,23 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (unit) {
-      // If the name is not a translation key, it's a custom name.
-      const isCustomName = !unit.name.startsWith('unitsTab.table.defaultUnitName');
-      setFormData({
-        customName: isCustomName ? unit.name : '',
-        area: unit.area,
-        occupants: unit.occupants,
-        ownerName: unit.ownerName,
-        tenantName: unit.tenantName || '',
-      });
-    } else {
-      setFormData({
-        customName: '', area: 0, occupants: 1, ownerName: '', tenantName: ''
-      });
+    if (isOpen) {
+        if (unit) {
+            // If the name is not a translation key, it's a custom name.
+            const isCustomName = !unit.name.startsWith('unitsTab.table.defaultUnitName');
+            setFormData({
+                customName: isCustomName ? unit.name : '',
+                area: unit.area,
+                occupants: unit.occupants,
+                ownerName: unit.ownerName,
+                tenantName: unit.tenantName || '',
+            });
+        } else {
+            setFormData({
+                customName: '', area: 0, occupants: 1, ownerName: '', tenantName: ''
+            });
+        }
+        setError('');
     }
   }, [unit, isOpen]);
 
@@ -67,7 +70,7 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     setError('');
 
     // If custom name is empty, use the default translation key. The unitNumber will be handled in useBuildingData.
-    const finalName = formData.customName.trim() || (unit?.name ?? 'unitsTab.table.defaultUnitName');
+    const finalName = formData.customName.trim() || 'unitsTab.table.defaultUnitName';
     
     onSave({
         ...formData,
@@ -88,7 +91,7 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="customName" className="text-right">{t('addUnitDialog.nameLabel')}</Label>
-            <Input id="customName" value={formData.customName} onChange={handleChange} className="col-span-3" placeholder={t(unit?.name || 'unitsTab.table.defaultUnitName', { number: unit?.unitNumber })}/>
+            <Input id="customName" value={formData.customName} onChange={handleChange} className="col-span-3" placeholder={t('unitsTab.table.defaultUnitName', { number: unit?.unitNumber })}/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="area" className="text-right">{t('addUnitDialog.areaLabel')}</Label>

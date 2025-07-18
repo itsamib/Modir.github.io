@@ -43,6 +43,15 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
         setEditingUnit(unit);
         setIsDialogOpen(true);
     };
+    
+    const getUnitName = (unit: Unit) => {
+        // If name is a translation key (e.g., 'unitsTab.table.defaultUnitName'), translate it.
+        // Otherwise, it's a custom name, so return it as is.
+        if (unit.name.includes('.')) {
+            return t(unit.name, { number: unit.unitNumber });
+        }
+        return unit.name;
+    }
 
     return (
         <Card>
@@ -71,7 +80,7 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
                     <TableBody>
                         {building.units.map(unit => (
                             <TableRow key={unit.id}>
-                                <TableCell className="font-medium">{t(unit.name, {number: unit.unitNumber})}</TableCell>
+                                <TableCell className="font-medium">{getUnitName(unit)}</TableCell>
                                 <TableCell>{unit.area}</TableCell>
                                 <TableCell>{unit.occupants}</TableCell>
                                 <TableCell>{unit.ownerName}</TableCell>
