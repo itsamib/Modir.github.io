@@ -335,17 +335,17 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     return (
         <Card>
             <CardHeader>
-                <div className="flex flex-wrap gap-4 justify-between items-start">
+                <div className="flex justify-between items-start">
                     <div className="flex-1">
                         <CardTitle>{t('expensesTab.title')}</CardTitle>
                         <CardDescription>{t('expensesTab.description')}</CardDescription>
                     </div>
-                     <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2 rtl:mr-auto ltr:ml-auto">
+                     <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2 rtl:ml-0 ltr:ml-auto rtl:mr-auto">
                         <PlusCircle size={20} />
                         <span>{t('expensesTab.addExpense')}</span>
                     </Button>
                 </div>
-                 <div className="flex flex-col gap-4 pt-4 border-t mt-4">
+                 <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start rtl:items-end">
                      <div className="flex flex-wrap gap-4 items-center">
                         <Label>{t('expensesTab.viewMode.title')}</Label>
                         <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-4" dir={direction}>
