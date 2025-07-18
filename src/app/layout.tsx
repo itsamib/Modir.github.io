@@ -6,7 +6,7 @@ import { AppBody } from '@/components/app-body';
 import { ThemeProvider } from '@/context/theme-provider';
 import { CopyrightFooter } from '@/components/copyright-footer';
 
-const APP_NAME = "حسابدار ساختمانی";
+const APP_NAME = "مدیریت ساختمان";
 const APP_DESCRIPTION = "اپلیکیشن مدیریت ساختمان";
 
 export const metadata: Metadata = {

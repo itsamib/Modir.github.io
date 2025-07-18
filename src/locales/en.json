@@ -1,7 +1,7 @@
 
 {
     "global": {
-        "appName": "Building Accountant",
+        "appName": "Building Management",
         "save": "Save",
         "cancel": "Cancel",
         "edit": "Edit",
@@ -70,7 +70,9 @@
             "area": "Area (m²)",
             "occupants": "Occupants",
             "ownerName": "Owner Name",
+            "ownerPhone": "Owner Phone",
             "tenantName": "Tenant Name",
+            "tenantPhone": "Tenant Phone",
             "actions": "Actions",
             "defaultUnitName": "Unit {number}"
         }

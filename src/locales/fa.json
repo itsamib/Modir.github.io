@@ -1,7 +1,7 @@
 
 {
     "global": {
-        "appName": "حسابدار ساختمانی",
+        "appName": "مدیریت ساختمان",
         "save": "ذخیره",
         "cancel": "لغو",
         "edit": "ویرایش",
@@ -70,7 +70,9 @@
             "area": "متراژ (متر مربع)",
             "occupants": "تعداد نفرات",
             "ownerName": "نام مالک",
+            "ownerPhone": "تلفن مالک",
             "tenantName": "نام مستاجر",
+            "tenantPhone": "تلفن مستاجر",
             "actions": "عملیات",
             "defaultUnitName": "واحد {number}"
         }
