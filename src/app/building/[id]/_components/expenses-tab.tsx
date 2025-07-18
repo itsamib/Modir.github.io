@@ -222,6 +222,13 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         return description;
     }
     
+    const getUnitName = (unit: Unit) => {
+        if (unit.name.includes('.')) {
+            return t(unit.name, { number: unit.unitNumber });
+        }
+        return unit.name;
+    }
+
     const renderByDateView = () => (
         <div className="overflow-x-auto">
             <Table>
@@ -231,7 +238,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <TableHead>{t('expensesTab.table.date')}</TableHead>
                         <TableHead>{t('expensesTab.table.totalAmount')}</TableHead>
                         {building.units.map(unit => (
-                            <TableHead key={unit.id} className="text-center">{t(unit.name, { number: unit.unitNumber })}</TableHead>
+                            <TableHead key={unit.id} className="text-center">{getUnitName(unit)}</TableHead>
                         ))}
                         <TableHead className="text-center">{t('expensesTab.table.actions')}</TableHead>
                     </TableRow>
@@ -296,7 +303,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                 <AccordionItem value={unit.id} key={unit.id}>
                     <AccordionTrigger>
                        <div className="flex justify-between w-full items-center pr-2">
-                            <span>{t(unit.name, { number: unit.unitNumber })}</span>
+                            <span>{getUnitName(unit)}</span>
                             {totalUnpaid > 0 ? (
                                 <Badge variant="destructive">{t('expensesTab.unpaidAmount', {amount: formatNumber(totalUnpaid)})}</Badge>
                             ) : (
@@ -355,8 +362,8 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                 </div>
                  <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start sm:items-end">
                      <div className="flex flex-wrap gap-4 items-center justify-end w-full">
-                        <Label>{t('expensesTab.viewMode.title')}</Label>
-                        <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-4" dir={direction}>
+                        <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-x-4 gap-y-2 items-center" dir={direction}>
+                            <Label>{t('expensesTab.viewMode.title')}</Label>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="byDate" id="byDate" />
                                 <Label htmlFor="byDate" className="font-normal flex items-center gap-2"><Calendar size={16}/> {t('expensesTab.viewMode.byDate')}</Label>
