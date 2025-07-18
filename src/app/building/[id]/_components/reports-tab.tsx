@@ -21,52 +21,58 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     
     const chargeTo = expense.chargeTo || 'all';
     
-    // Check if the unit is applicable based on chargeTo
-    if (chargeTo === 'tenant' && !unit.tenantName) return 0;
-    if (chargeTo === 'owner' && unit.tenantName) return 0;
+    // Determine if the unit is subject to the charge based on its resident status
+    const isOwnerOccupied = !unit.tenantName;
+    if (chargeTo === 'tenant' && isOwnerOccupied) return 0;
+    if (chargeTo === 'owner' && !isOwnerOccupied) return 0;
 
-    // Filter all units based on who is being charged for divisional calculations
-    const applicableUnitsForDivision = allUnits.filter(u => {
-        if (chargeTo === 'tenant') return !!u.tenantName;
-        if (chargeTo === 'owner') return !u.tenantName;
-        return true; // 'all'
-    });
-
-    switch (expense.distributionMethod) {
-        case 'unit_count': {
-            const numApplicable = applicableUnitsForDivision.length;
-            amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
-            break;
-        }
-        case 'occupants': {
-            const totalOccupants = applicableUnitsForDivision.reduce((sum, u) => sum + u.occupants, 0);
-            amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
-            break;
-        }
-        case 'area': {
-            const totalArea = applicableUnitsForDivision.reduce((sum, u) => sum + u.area, 0);
-            amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
-            break;
-        }
-        case 'custom': {
-            // In 'custom' mode, totalAmount is the per-unit amount.
-            // It applies only if the unit was specifically selected in the expense.
-            if (expense.applicableUnits?.includes(unit.id)) {
-                amount = expense.totalAmount;
-            } else {
-                amount = 0;
-            }
-            break;
-        }
-        default:
+    // In 'custom' mode, the amount is assigned directly, only if the unit was selected.
+    if (expense.distributionMethod === 'custom') {
+        if (expense.applicableUnits?.includes(unit.id)) {
+            amount = expense.totalAmount; // This is now amount per unit
+        } else {
             amount = 0;
-            break;
+        }
+    } else {
+        // For other methods, filter all units based on who is being charged for divisional calculations
+        const applicableUnitsForDivision = allUnits.filter(u => {
+            const unitIsOwnerOccupied = !u.tenantName;
+            if (chargeTo === 'tenant') return !unitIsOwnerOccupied;
+            if (chargeTo === 'owner') return unitIsOwnerOccupied;
+            return true; // 'all'
+        });
+
+        // if the current unit is not in the division group, its amount is 0
+        if (!applicableUnitsForDivision.some(u => u.id === unit.id)) return 0;
+
+        switch (expense.distributionMethod) {
+            case 'unit_count': {
+                const numApplicable = applicableUnitsForDivision.length;
+                amount = numApplicable > 0 ? expense.totalAmount / numApplicable : 0;
+                break;
+            }
+            case 'occupants': {
+                const totalOccupants = applicableUnitsForDivision.reduce((sum, u) => sum + u.occupants, 0);
+                amount = totalOccupants > 0 ? (expense.totalAmount * unit.occupants) / totalOccupants : 0;
+                break;
+            }
+            case 'area': {
+                const totalArea = applicableUnitsForDivision.reduce((sum, u) => sum + u.area, 0);
+                amount = totalArea > 0 ? (expense.totalAmount * unit.area) / totalArea : 0;
+                break;
+            }
+            default:
+                amount = 0;
+                break;
+        }
     }
 
     if (amount === 0) return 0;
     
+    // Round to nearest 500
     return Math.ceil(amount / 500) * 500;
 };
+
 
 const chargeToText = (chargeTo: ChargeTo) => {
     switch(chargeTo) {
@@ -90,10 +96,15 @@ export function ReportsTab({ building }: ReportsTabProps) {
                     
                     const paymentStatus = expense.paymentStatus[unit.id] || 'unpaid';
 
+                    let totalExpenseAmount = expense.totalAmount;
+                    if(expense.distributionMethod === 'custom') {
+                        totalExpenseAmount = (expense.applicableUnits?.length ?? 0) * expense.totalAmount;
+                    }
+
                     return {
                         'شرح هزینه': expense.description,
                         'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
-                        'مبلغ کل هزینه': Math.ceil(expense.totalAmount),
+                        'مبلغ کل هزینه': Math.ceil(totalExpenseAmount),
                         'روش تقسیم': expense.distributionMethod,
                         'پرداخت توسط مدیر': expense.paidByManager ? 'بله' : 'خیر',
                         'پرداخت برای': chargeToText(expense.chargeTo),
@@ -115,7 +126,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
                 return;
             }
 
-            const worksheet = XLSX.utils.json_to_sheet(data);
+            const worksheet = XLSX.utils.json_to_sheet(data as any[]);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "گزارش هزینه ها");
             
