@@ -116,25 +116,31 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         return ["all", ...Array.from(new Set(expenseYears)).sort((a, b) => b.localeCompare(a))];
     }, [building.expenses]);
 
-    const filteredExpenses = useMemo(() => {
+    const dateFilteredExpenses = useMemo(() => {
         return building.expenses
             .filter(e => {
-                if (viewMode === 'byUnit') return true; // No date filter in byUnit view
                 const expenseDate = new Date(e.date);
                 const yearMatches = yearFilter === "all" || getYear(expenseDate).toString() === yearFilter;
                 const monthMatches = monthFilter === "all" || (expenseDate.getMonth() + 1).toString() === monthFilter;
                 return yearMatches && monthMatches;
             })
-            .filter(e => !showManagerExpenses || e.paidByManager)
             .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [building.expenses, yearFilter, monthFilter, showManagerExpenses, viewMode]);
+    }, [building.expenses, yearFilter, monthFilter]);
     
+    const managerFilteredExpenses = useMemo(() => {
+        const sourceExpenses = viewMode === 'byDate' ? dateFilteredExpenses : building.expenses;
+        return sourceExpenses
+            .filter(e => !showManagerExpenses || e.paidByManager)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [viewMode, dateFilteredExpenses, building.expenses, showManagerExpenses]);
+
     const expensesByUnit = useMemo(() => {
         const result: Record<string, { unit: Unit, expenses: (Expense & { amount: number })[], totalUnpaid: number }> = {};
         building.units.forEach(unit => {
             const unitExpenses = [];
             let totalUnpaid = 0;
-            for (const expense of filteredExpenses) {
+            // When calculating by unit, we should ignore date and manager filters to show all-time debt
+            for (const expense of building.expenses) {
                 const amount = getAmountPerUnit(expense, unit, building.units);
                 if (amount > 0) {
                     unitExpenses.push({ ...expense, amount });
@@ -143,10 +149,13 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     }
                 }
             }
+            // Sort expenses for the unit by date
+            unitExpenses.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
             result[unit.id] = { unit, expenses: unitExpenses, totalUnpaid };
         });
         return result;
-    }, [building.units, filteredExpenses, building.units]);
+    }, [building.units, building.expenses]);
+
 
     const handleOpenAddDialog = (expense: Expense | null) => {
         setEditingExpense(expense);
@@ -219,7 +228,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {filteredExpenses.map(expense => (
+                    {managerFilteredExpenses.map(expense => (
                         <TableRow key={expense.id}>
                             <TableCell className="font-medium">
                                 <div className="flex flex-col gap-1">
@@ -266,7 +275,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     ))}
                 </TableBody>
             </Table>
-             {filteredExpenses.length === 0 && (
+             {managerFilteredExpenses.length === 0 && (
                  <div className="text-center py-10 text-muted-foreground">{t('expensesTab.noExpensesFound')}</div>
             )}
         </div>
@@ -277,7 +286,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
             {Object.values(expensesByUnit).map(({ unit, expenses, totalUnpaid }) => (
                 <AccordionItem value={unit.id} key={unit.id}>
                     <AccordionTrigger>
-                       <div className="flex justify-between w-full items-center">
+                       <div className="flex justify-between w-full items-center pr-2">
                             <span>{unit.name}</span>
                             {totalUnpaid > 0 ? (
                                 <Badge variant="destructive">{t('expensesTab.unpaidAmount', {amount: formatNumber(totalUnpaid)})}</Badge>
@@ -366,13 +375,16 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                     {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: faIR })}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                                <UserCheck className="text-muted-foreground"/>
-                                <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>
-                                <Switch id="manager-expenses" checked={showManagerExpenses} onCheckedChange={setShowManagerExpenses} />
-                            </div>
                         </div>
                     )}
+                    <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <UserCheck className="text-muted-foreground"/>
+                            <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>
+                            <Switch id="manager-expenses" checked={showManagerExpenses} onCheckedChange={setShowManagerExpenses} />
+                            <p className="text-xs text-muted-foreground">{t('expensesTab.managerPaymentsTooltip')}</p>
+                        </div>
+                    </div>
                 </div>
             </CardHeader>
             <CardContent>
