@@ -112,6 +112,10 @@ export default function Home() {
   }
 
 
+  if (!isClient) {
+    return null; // or a loading skeleton
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -143,20 +147,19 @@ export default function Home() {
           </div>
         </div>
         
-        {isClient && loading ? (
+        {loading ? (
            <p>{t('home.loadingBuildings')}</p>
-        ) : isClient && buildings.length > 0 ? (
+        ) : buildings.length > 0 ? (
           <BuildingList buildings={buildings} />
-        ) : isClient ? (
+        ) : (
           <div className="text-center py-16 border-2 border-dashed rounded-lg">
               <h2 className="text-xl font-semibold text-muted-foreground">{t('home.noBuildingsFound')}</h2>
               <p className="text-muted-foreground mt-2">{t('home.noBuildingsCTA')}</p>
               <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">{t('home.newBuilding')}</Button>
           </div>
-        ) : null}
+        )}
 
       </main>
-       {isClient && <CopyrightFooter />}
       <CreateBuildingDialog
         isOpen={isCreateDialogOpen}
         onClose={() => setIsCreateDialogOpen(false)}

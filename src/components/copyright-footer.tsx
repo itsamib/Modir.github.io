@@ -16,7 +16,7 @@ export const CopyrightFooter = () => {
     }
 
     return (
-        <footer className="w-full text-center p-4 text-xs text-muted-foreground border-t">
+        <footer className="w-full text-center p-4 text-xs text-muted-foreground border-t mt-auto">
             {t('global.copyright')}
         </footer>
     );
