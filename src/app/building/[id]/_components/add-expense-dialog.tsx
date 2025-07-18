@@ -116,7 +116,8 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             اطلاعات هزینه را وارد کنید.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto px-2">
+        <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-2">
+          
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="description" className="text-right text-xs">شرح هزینه</Label>
              <Combobox
@@ -127,6 +128,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 className="col-span-3"
               />
           </div>
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="totalAmount" className="text-right text-xs">
                 {distributionMethod === 'custom' ? 'مبلغ برای هر واحد' : 'مبلغ کل'} (تومان)
@@ -139,6 +141,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 className="col-span-3 text-left" dir="ltr"
             />
           </div>
+
           <div className="grid grid-cols-4 items-center gap-4">
              <Label htmlFor="date" className="text-right text-xs">تاریخ</Label>
              <Popover>
@@ -165,6 +168,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 </PopoverContent>
             </Popover>
           </div>
+
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="distributionMethod" className="text-right text-xs">روش تقسیم</Label>
             <Select 
@@ -237,6 +241,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 </div>
             </RadioGroup>
           </div>
+          
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="paidByManager" className="text-right text-xs">پرداختی مدیر</Label>
             <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
@@ -252,3 +257,5 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     </Dialog>
   );
 }
+
+    
