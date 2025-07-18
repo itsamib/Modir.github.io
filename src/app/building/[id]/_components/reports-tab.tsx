@@ -307,12 +307,12 @@ export function ReportsTab({ building }: ReportsTabProps) {
             </Card>
 
             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse ltr:flex-row rtl:justify-end ltr:justify-start w-full">
+                <CardHeader className="rtl:text-right ltr:text-left">
+                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse rtl:justify-end">
                         <AlertTriangle className="text-destructive"/>
                         {t('reportsTab.overdue.title')}
                     </CardTitle>
-                    <CardDescription className="rtl:text-right ltr:text-left">{t('reportsTab.overdue.description')}</CardDescription>
+                    <CardDescription>{t('reportsTab.overdue.description')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                     {stats.overdueDebts.length > 0 ? (
@@ -331,9 +331,9 @@ export function ReportsTab({ building }: ReportsTabProps) {
             </Card>
 
             <Card>
-                <CardHeader>
-                    <CardTitle className="rtl:text-right ltr:text-left">{t('reportsTab.export.title')}</CardTitle>
-                    <CardDescription className="rtl:text-right ltr:text-left">{t('reportsTab.export.description')}</CardDescription>
+                <CardHeader className="rtl:text-right ltr:text-left">
+                    <CardTitle>{t('reportsTab.export.title')}</CardTitle>
+                    <CardDescription>{t('reportsTab.export.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="space-y-4 rtl:text-right ltr:text-left">
