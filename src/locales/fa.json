@@ -16,8 +16,7 @@
     "home": {
         "myBuildings": "ساختمان‌های من",
         "newBuilding": "ساختمان جدید",
-        "exportData": "خروجی گرفتن از داده‌ها",
-        "importData": "ورود داده‌ها",
+        "importData": "ورود داده‌ها (کلی)",
         "loadingBuildings": "در حال بارگذاری ساختمان‌ها...",
         "noBuildingsFound": "هیچ ساختمانی یافت نشد",
         "noBuildingsCTA": "برای شروع، یک ساختمان جدید ایجاد کنید.",
@@ -27,7 +26,7 @@
         "importSuccessDesc": "اطلاعات با موفقیت بازیابی شد.",
         "importErrorDesc": "فرمت فایل نامعتبر است یا فایل خراب شده است.",
         "importConfirmTitle": "آیا از ورود داده‌ها مطمئن هستید؟",
-        "importConfirmDesc": "توجه: این کار تمام اطلاعات فعلی شما را پاک کرده و داده‌های جدید را جایگزین می‌کند. این عمل قابل بازگشت نیست.",
+        "importConfirmDesc": "توجه: این کار داده‌های فعلی شما را با داده‌های جدید جایگزین می‌کند. این عمل قابل بازگشت نیست.",
         "importConfirmAction": "بله، جایگزین کن"
     },
     "createBuildingDialog": {
@@ -43,7 +42,8 @@
         "cardDescription": "مجموعه اطلاعات و هزینه‌های ساختمان",
         "units": "واحد",
         "expenses": "هزینه ثبت شده",
-        "viewDashboard": "مشاهده داشبورد"
+        "viewDashboard": "مشاهده داشبورد",
+        "exportJson": "خروجی (JSON)"
     },
     "dashboard": {
         "title": "داشبورد مدیریت هزینه‌ها و واحدهای ساختمان",

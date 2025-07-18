@@ -179,7 +179,11 @@ export const useBuildingData = () => {
     }), callback);
   };
 
-  const exportData = (): string => {
+  const exportData = (buildingId?: string): string => {
+    if (buildingId) {
+        const buildingToExport = memoryState.find(b => b.id === buildingId);
+        return buildingToExport ? JSON.stringify(buildingToExport, null, 2) : "{}";
+    }
     return JSON.stringify(memoryState, null, 2);
   };
 
@@ -187,9 +191,24 @@ export const useBuildingData = () => {
     try {
         const parsedData = JSON.parse(jsonData);
         // Basic validation can be added here
-        if (Array.isArray(parsedData)) {
+        if (Array.isArray(parsedData)) { // It's a full backup of all buildings
             saveData(parsedData, callback);
-        } else {
+        } else if (typeof parsedData === 'object' && parsedData.id && parsedData.name) { // It's a single building backup
+             saveData(prev => {
+                // It's a single building, check if it exists
+                const existingIndex = prev.findIndex(b => b.id === parsedData.id);
+                if (existingIndex > -1) {
+                    // Update existing building
+                    const newState = [...prev];
+                    newState[existingIndex] = parsedData;
+                    return newState;
+                } else {
+                    // Add as a new building
+                    return [...prev, parsedData];
+                }
+            }, callback);
+        }
+        else {
             throw new Error("Invalid data format");
         }
     } catch(error) {

@@ -16,8 +16,7 @@
     "home": {
         "myBuildings": "My Buildings",
         "newBuilding": "New Building",
-        "exportData": "Export Data",
-        "importData": "Import Data",
+        "importData": "Import Data (All)",
         "loadingBuildings": "Loading buildings...",
         "noBuildingsFound": "No buildings found",
         "noBuildingsCTA": "Create a new building to get started.",
@@ -27,7 +26,7 @@
         "importSuccessDesc": "Data was restored successfully.",
         "importErrorDesc": "Invalid file format or corrupted file.",
         "importConfirmTitle": "Are you sure you want to import data?",
-        "importConfirmDesc": "Warning: This action will erase all your current data and replace it with the new data. This action cannot be undone.",
+        "importConfirmDesc": "Warning: This action will replace your current data with the new data. This action cannot be undone.",
         "importConfirmAction": "Yes, replace it"
     },
     "createBuildingDialog": {
@@ -43,7 +42,8 @@
         "cardDescription": "Collection of building information and expenses",
         "units": "Units",
         "expenses": "expenses recorded",
-        "viewDashboard": "View Dashboard"
+        "viewDashboard": "View Dashboard",
+        "exportJson": "Export (JSON)"
     },
     "dashboard": {
         "title": "Dashboard for managing building expenses and units",

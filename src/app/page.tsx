@@ -6,7 +6,7 @@ import { Header } from "@/components/header";
 import { BuildingList } from "@/components/building-list";
 import { Button } from "@/components/ui/button";
 import { CreateBuildingDialog } from "@/components/create-building-dialog";
-import { PlusCircle, Download, Upload } from "lucide-react";
+import { PlusCircle, Upload } from "lucide-react";
 import { useLanguage } from "@/context/language-context";
 import {
   AlertDialog,
@@ -21,7 +21,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 export default function Home() {
-  const { buildings, addBuilding, loading, importData, exportData } = useBuildingData();
+  const { buildings, addBuilding, loading, importData } = useBuildingData();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isImportAlertOpen, setIsImportAlertOpen] = useState(false);
   const [fileToImport, setFileToImport] = useState<File | null>(null);
@@ -39,24 +39,6 @@ export default function Home() {
     addBuilding(name, unitCount);
     setIsCreateDialogOpen(false);
   };
-
-  const handleExportClick = () => {
-    const jsonData = exportData();
-    const blob = new Blob([jsonData], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "hesabdar-data.json";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-     toast({
-        title: t('home.exportSuccessTitle'),
-        description: t('home.exportSuccessDesc'),
-        className: "bg-primary text-primary-foreground"
-    });
-  }
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -120,10 +102,6 @@ export default function Home() {
             <Button onClick={handleImportClick} variant="outline" className="flex items-center gap-2">
               <Upload size={20} />
               <span>{t('home.importData')}</span>
-            </Button>
-            <Button onClick={handleExportClick} variant="outline" className="flex items-center gap-2">
-              <Download size={20} />
-              <span>{t('home.exportData')}</span>
             </Button>
             <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
               <PlusCircle size={20} />
