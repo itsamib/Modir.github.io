@@ -9,7 +9,9 @@
         "success": "Success",
         "loading": "Loading...",
         "optional": "(Optional)",
-        "copyright": "© All rights for this application are reserved for Amin Bozorg."
+        "copyright": "© All rights for this application are reserved for Amin Bozorg.",
+        "yes": "Yes",
+        "no": "No"
     },
     "header": {
         "languageToggle": "FA / EN"
@@ -175,7 +177,8 @@
             "title": "Building Statistics",
             "totalUnits": "Total Units",
             "totalOccupants": "Total Occupants",
-            "vacantUnits": "Vacant Units"
+            "vacantUnits": "Vacant Units",
+            "whichUnits": "Units"
         },
         "fund": {
             "title": "Building Fund Status",

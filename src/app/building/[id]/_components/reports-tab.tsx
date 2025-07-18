@@ -9,9 +9,8 @@ import { Label } from "@/components/ui/label"
 import { Download, Users, Home, UserX, Wallet, AlertTriangle, ArrowDown, ArrowUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
-import { format, getMonth, getYear, startOfMonth } from 'date-fns-jalali';
+import { format, startOfMonth } from 'date-fns-jalali';
 import { useLanguage } from '@/context/language-context';
-import { Separator } from '@/components/ui/separator';
 
 interface ReportsTabProps {
     building: Building;
@@ -79,17 +78,27 @@ export function ReportsTab({ building }: ReportsTabProps) {
     }
     
     const getExpenseDescription = (description: string) => {
-        // If description is a translation key, translate it. Otherwise, return it as is.
         if (description.includes('.')) {
             return t(description);
         }
         return description;
     }
+    
+     const getUnitName = (unit: Unit) => {
+        if (unit.name.includes('.')) {
+            return t(unit.name, { number: unit.unitNumber });
+        }
+        return unit.name;
+    }
 
     const stats = useMemo(() => {
         const totalUnits = building.units.length;
         const totalOccupants = building.units.reduce((sum, unit) => sum + unit.occupants, 0);
-        const vacantUnits = building.units.filter(unit => unit.tenantName === null && unit.occupants === 0).length;
+        
+        const vacantUnitsList = building.units.filter(unit => unit.tenantName === null && unit.occupants === 0);
+        const vacantUnitsCount = vacantUnitsList.length;
+        const vacantUnitNames = vacantUnitsList.map(u => getUnitName(u));
+
 
         const fundInflow = building.expenses
             .filter(e => e.isBuildingCharge)
@@ -124,15 +133,15 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             return {
                 unitId: unit.id,
-                unitName: t(unit.name, {number: unit.unitNumber}),
+                unitName: getUnitName(unit),
                 amount: unpaidAmount
             };
         }).filter(debt => debt.amount > 0);
 
 
-        return { totalUnits, totalOccupants, vacantUnits, fundBalance, overdueDebts, fundInflow, fundOutflow };
+        return { totalUnits, totalOccupants, vacantUnitsCount, vacantUnitNames, fundBalance, overdueDebts, fundInflow, fundOutflow };
 
-    }, [building, t]);
+    }, [building, t, language]);
 
 
     const handleExport = () => {
@@ -153,15 +162,15 @@ export function ReportsTab({ building }: ReportsTabProps) {
                         'شرح هزینه': getExpenseDescription(expense.description),
                         'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
                         'مبلغ کل هزینه': Math.ceil(totalExpenseAmount),
-                        'روش تقسیم': expense.distributionMethod,
-                        'پرداخت توسط مدیر': expense.paidByManager ? 'بله' : 'خیر',
-                        'کسر از صندوق': expense.deductFromFund ? 'بله' : 'خیر',
-                        'شارژ ساختمان': expense.isBuildingCharge ? 'بله' : 'خیر',
-                        'واحد': t(unit.name, { number: unit.unitNumber }),
+                        'روش تقسیم': t(`addExpenseDialog.methods.${expense.distributionMethod}`),
+                        'پرداخت توسط مدیر': expense.paidByManager ? t('global.yes') : t('global.no'),
+                        'کسر از صندوق': expense.deductFromFund ? t('global.yes') : t('global.no'),
+                        'شارژ ساختمان': expense.isBuildingCharge ? t('global.yes') : t('global.no'),
+                        'واحد': getUnitName(unit),
                         'مالک': unit.ownerName,
                         'مستاجر': unit.tenantName || '-',
                         'سهم واحد': amount,
-                        'وضعیت پرداخت': paymentStatus === 'paid' ? 'پرداخت شده' : 'پرداخت نشده',
+                        'وضعیت پرداخت': paymentStatus === 'paid' ? t('paymentStatus.paid') : t('paymentStatus.unpaid'),
                     };
                 }).filter(Boolean);
             });
@@ -179,7 +188,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "Expense Report");
             
-            XLSX.writeFile(workbook, `${building.name}-report.xlsx`);
+            XLSX.writeFile(workbook, `${building.name}-report-${language}.xlsx`);
 
             toast({
                 title: t('reportsTab.exportSuccessTitle'),
@@ -199,7 +208,6 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
     return (
         <div className="space-y-8">
-            {/* Stats Cards */}
             <Card>
                 <CardHeader>
                     <CardTitle>{t('reportsTab.stats.title')}</CardTitle>
@@ -223,19 +231,23 @@ export function ReportsTab({ building }: ReportsTabProps) {
                             </div>
                         </div>
                     </Card>
-                     <Card className="p-4 bg-muted/50">
+                     <Card className="p-4 bg-muted/50 flex flex-col justify-between">
                         <div className="flex items-center gap-4">
                             <UserX className="w-8 h-8 text-primary"/>
                             <div>
                                 <p className="text-sm text-muted-foreground">{t('reportsTab.stats.vacantUnits')}</p>
-                                <p className="text-2xl font-bold">{formatNumber(stats.vacantUnits)}</p>
+                                <p className="text-2xl font-bold">{formatNumber(stats.vacantUnitsCount)}</p>
                             </div>
                         </div>
+                        {stats.vacantUnitsCount > 0 && (
+                             <p className="text-xs text-muted-foreground mt-2 truncate">
+                                {t('reportsTab.stats.whichUnits')}: {stats.vacantUnitNames.join(', ')}
+                             </p>
+                        )}
                     </Card>
                 </CardContent>
             </Card>
 
-            {/* Fund Status */}
             <Card>
                 <CardHeader>
                     <CardTitle>{t('reportsTab.fund.title')}</CardTitle>
@@ -260,7 +272,6 @@ export function ReportsTab({ building }: ReportsTabProps) {
                  </CardContent>
             </Card>
 
-             {/* Overdue Debts */}
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
@@ -285,7 +296,6 @@ export function ReportsTab({ building }: ReportsTabProps) {
                 </CardContent>
             </Card>
 
-            {/* Export section */}
             <Card>
                 <CardHeader>
                     <CardTitle>{t('reportsTab.export.title')}</CardTitle>
@@ -295,16 +305,16 @@ export function ReportsTab({ building }: ReportsTabProps) {
                     <div className="space-y-4">
                         <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
                         <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType}>
-                            <div className="flex items-center space-x-2 space-x-reverse">
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="values" id="r1" />
                                 <Label htmlFor="r1">{t('reportsTab.exportValues')}</Label>
                             </div>
-                            <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportValuesDesc')}</p>
-                            <div className="flex items-center space-x-2 space-x-reverse">
+                            <p className="text-xs text-muted-foreground ltr:pl-6 rtl:pr-6">{t('reportsTab.exportValuesDesc')}</p>
+                            <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="formulas" id="r2" disabled />
                                 <Label htmlFor="r2">{t('reportsTab.exportFormulas')}</Label>
                             </div>
-                            <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportFormulasDesc')}</p>
+                            <p className="text-xs text-muted-foreground ltr:pl-6 rtl:pr-6">{t('reportsTab.exportFormulasDesc')}</p>
 
                         </RadioGroup>
                     </div>
