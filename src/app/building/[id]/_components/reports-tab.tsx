@@ -76,7 +76,7 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
 export function ReportsTab({ building }: ReportsTabProps) {
     const [exportType, setExportType] = useState("values");
     const { toast } = useToast();
-    const { t, language } = useLanguage();
+    const { t, language, direction } = useLanguage();
 
     const formatNumber = (num: number) => {
         return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(num);
@@ -240,38 +240,38 @@ export function ReportsTab({ building }: ReportsTabProps) {
     return (
         <div className="space-y-8">
             <Card>
-                <CardHeader>
-                    <CardTitle className="rtl:text-right ltr:text-left">{t('reportsTab.stats.title')}</CardTitle>
+                <CardHeader className="flex flex-col rtl:items-end ltr:items-start">
+                    <CardTitle>{t('reportsTab.stats.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     <Card className="p-4 bg-muted/50">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4" dir={direction}>
                             <Home className="w-8 h-8 text-primary"/>
-                            <div>
+                            <div className="rtl:text-right ltr:text-left">
                                 <p className="text-sm text-muted-foreground">{t('reportsTab.stats.totalUnits')}</p>
                                 <p className="text-2xl font-bold">{formatNumber(stats.totalUnits)}</p>
                             </div>
                         </div>
                     </Card>
                      <Card className="p-4 bg-muted/50">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4" dir={direction}>
                             <Users className="w-8 h-8 text-primary"/>
-                            <div>
+                            <div className="rtl:text-right ltr:text-left">
                                 <p className="text-sm text-muted-foreground">{t('reportsTab.stats.totalOccupants')}</p>
                                 <p className="text-2xl font-bold">{formatNumber(stats.totalOccupants)}</p>
                             </div>
                         </div>
                     </Card>
                      <Card className="p-4 bg-muted/50 flex flex-col justify-between">
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4" dir={direction}>
                             <UserX className="w-8 h-8 text-primary"/>
-                            <div>
+                            <div className="rtl:text-right ltr:text-left">
                                 <p className="text-sm text-muted-foreground">{t('reportsTab.stats.vacantUnits')}</p>
                                 <p className="text-2xl font-bold">{formatNumber(stats.vacantUnitsCount)}</p>
                             </div>
                         </div>
                         {stats.vacantUnitsCount > 0 && (
-                             <p className="text-xs text-muted-foreground mt-2 truncate">
+                             <p className="text-xs text-muted-foreground mt-2 truncate rtl:text-right ltr:text-left">
                                 {t('reportsTab.stats.whichUnits')}: {stats.vacantUnitNames.join(', ')}
                              </p>
                         )}
@@ -280,8 +280,8 @@ export function ReportsTab({ building }: ReportsTabProps) {
             </Card>
 
             <Card>
-                <CardHeader>
-                    <CardTitle className="rtl:text-right ltr:text-left">{t('reportsTab.fund.title')}</CardTitle>
+                <CardHeader className="flex flex-col rtl:items-end ltr:items-start">
+                    <CardTitle>{t('reportsTab.fund.title')}</CardTitle>
                 </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-center p-6 rounded-lg bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
@@ -307,8 +307,8 @@ export function ReportsTab({ building }: ReportsTabProps) {
             </Card>
 
             <Card>
-                <CardHeader className="rtl:text-right ltr:text-left">
-                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse rtl:justify-end">
+                <CardHeader className="flex flex-col rtl:items-end ltr:items-start">
+                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse">
                         <AlertTriangle className="text-destructive"/>
                         {t('reportsTab.overdue.title')}
                     </CardTitle>
@@ -318,7 +318,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
                     {stats.overdueDebts.length > 0 ? (
                         <ul className="space-y-2">
                            {stats.overdueDebts.map(debt => (
-                               <li key={debt.unitId} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg">
+                               <li key={debt.unitId} className="flex justify-between items-center p-3 bg-muted/50 rounded-lg" dir={direction}>
                                    <span className="font-medium">{debt.unitName}</span>
                                    <span className="font-semibold text-destructive">{formatNumber(debt.amount)} {t('addExpenseDialog.currency')}</span>
                                </li>
@@ -331,14 +331,14 @@ export function ReportsTab({ building }: ReportsTabProps) {
             </Card>
 
             <Card>
-                <CardHeader className="rtl:text-right ltr:text-left">
+                <CardHeader className="flex flex-col rtl:items-end ltr:items-start">
                     <CardTitle>{t('reportsTab.export.title')}</CardTitle>
                     <CardDescription>{t('reportsTab.export.description')}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="space-y-4 rtl:text-right ltr:text-left">
                         <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
-                        <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                        <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType} dir={direction}>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="values" id="r1" />
                                 <Label htmlFor="r1">{t('reportsTab.exportValues')}</Label>
@@ -352,10 +352,12 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
                         </RadioGroup>
                     </div>
-                    <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2 rtl:float-right ltr:float-left">
-                        <Download size={20}/>
-                        <span>{t('reportsTab.exportButton')}</span>
-                    </Button>
+                    <div className="flex" dir={direction}>
+                        <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2 rtl:mr-auto ltr:ml-auto">
+                            <Download size={20}/>
+                            <span>{t('reportsTab.exportButton')}</span>
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </div>
