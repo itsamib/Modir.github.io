@@ -19,11 +19,10 @@ const translations = { fa, en };
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
-  const [language, setLanguage] = useState<Language>('fa');
-  const [isMounted, setIsMounted] = useState(false);
-
+  const [language, setLanguage] = useState<Language>('fa'); // Default to 'fa' to avoid issues on server
+  
   useEffect(() => {
-    setIsMounted(true);
+    // This effect runs only on the client
     const storedLang = localStorage.getItem('language') as Language | null;
     if (storedLang && ['fa', 'en'].includes(storedLang)) {
       setLanguage(storedLang);
@@ -53,10 +52,6 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   };
   
   const direction = language === 'fa' ? 'rtl' : 'ltr';
-
-  if (!isMounted) {
-    return null; 
-  }
 
   return (
     <LanguageContext.Provider value={{ language, direction, toggleLanguage, t }}>
