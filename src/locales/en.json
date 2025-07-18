@@ -16,9 +16,19 @@
     "home": {
         "myBuildings": "My Buildings",
         "newBuilding": "New Building",
+        "exportData": "Export Data",
+        "importData": "Import Data",
         "loadingBuildings": "Loading buildings...",
         "noBuildingsFound": "No buildings found",
-        "noBuildingsCTA": "Create a new building to get started."
+        "noBuildingsCTA": "Create a new building to get started.",
+        "exportSuccessTitle": "Export Successful",
+        "exportSuccessDesc": "Backup file was created successfully.",
+        "importSuccessTitle": "Import Successful",
+        "importSuccessDesc": "Data was restored successfully.",
+        "importErrorDesc": "Invalid file format or corrupted file.",
+        "importConfirmTitle": "Are you sure you want to import data?",
+        "importConfirmDesc": "Warning: This action will erase all your current data and replace it with the new data. This action cannot be undone.",
+        "importConfirmAction": "Yes, replace it"
     },
     "createBuildingDialog": {
         "title": "Create New Building",

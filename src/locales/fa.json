@@ -16,9 +16,19 @@
     "home": {
         "myBuildings": "ساختمان‌های من",
         "newBuilding": "ساختمان جدید",
+        "exportData": "خروجی گرفتن از داده‌ها",
+        "importData": "ورود داده‌ها",
         "loadingBuildings": "در حال بارگذاری ساختمان‌ها...",
         "noBuildingsFound": "هیچ ساختمانی یافت نشد",
-        "noBuildingsCTA": "برای شروع، یک ساختمان جدید ایجاد کنید."
+        "noBuildingsCTA": "برای شروع، یک ساختمان جدید ایجاد کنید.",
+        "exportSuccessTitle": "خروجی موفق",
+        "exportSuccessDesc": "فایل پشتیبان با موفقیت ایجاد شد.",
+        "importSuccessTitle": "ورود موفق",
+        "importSuccessDesc": "اطلاعات با موفقیت بازیابی شد.",
+        "importErrorDesc": "فرمت فایل نامعتبر است یا فایل خراب شده است.",
+        "importConfirmTitle": "آیا از ورود داده‌ها مطمئن هستید؟",
+        "importConfirmDesc": "توجه: این کار تمام اطلاعات فعلی شما را پاک کرده و داده‌های جدید را جایگزین می‌کند. این عمل قابل بازگشت نیست.",
+        "importConfirmAction": "بله، جایگزین کن"
     },
     "createBuildingDialog": {
         "title": "ایجاد ساختمان جدید",
@@ -146,7 +156,7 @@
         "exportValues": "فقط مقادیر محاسبه‌شده",
         "exportValuesDesc": "خروجی شامل داده‌های نهایی و بدون فرمول‌های اکسل خواهد بود. (توصیه شده)",
         "exportFormulas": "شامل فرمول‌های زنده اکسل (به زودی)",
-        "exportFormulasDesc": "خروجی شامل فرمول‌ها خواهد بود که محاسبات را در خود اکسل انجام می‌دهند.",
+        "exportFormulasDesc": "خروجی شامل فرمول‌ها خواهد بود که محاسبات را در خود اکسل انجام می‌ده دهند.",
         "exportButton": "تهیه خروجی",
         "noData": "هیچ داده‌ای برای خروجی گرفتن وجود ندارد.",
         "exportSuccessTitle": "خروجی اکسل موفق",

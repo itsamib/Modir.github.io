@@ -30,7 +30,7 @@ loadInitialData();
 
 export const useBuildingData = () => {
   const [buildings, setBuildings] = useState<Building[]>(memoryState);
-  const [loading, setLoading] = useState(memoryState.length === 0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const listener = (newState: Building[]) => {
@@ -38,6 +38,11 @@ export const useBuildingData = () => {
       if (loading) setLoading(false);
     };
     listeners.add(listener);
+    
+    // Initial load check
+    if(memoryState.length > 0) {
+        setLoading(false);
+    }
     
     listener(memoryState);
 
@@ -174,6 +179,25 @@ export const useBuildingData = () => {
     }), callback);
   };
 
+  const exportData = (): string => {
+    return JSON.stringify(memoryState, null, 2);
+  };
+
+  const importData = (jsonData: string, callback?: () => void) => {
+    try {
+        const parsedData = JSON.parse(jsonData);
+        // Basic validation can be added here
+        if (Array.isArray(parsedData)) {
+            saveData(parsedData, callback);
+        } else {
+            throw new Error("Invalid data format");
+        }
+    } catch(error) {
+        console.error("Failed to import data", error);
+        throw error; // Re-throw to be caught by the UI
+    }
+  }
+
 
   return { 
     buildings, 
@@ -186,6 +210,8 @@ export const useBuildingData = () => {
     updateExpenseInBuilding,
     updateExpensePaymentStatus,
     deleteExpenseFromBuilding,
+    exportData,
+    importData,
   };
 };
 
