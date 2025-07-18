@@ -136,13 +136,16 @@ export const useBuildingData = () => {
 
         const paymentStatus: Record<string, PaymentStatus> = {};
         
-        const applicableUnitIds = expense.distributionMethod === 'custom' && expense.applicableUnits?.length
-            ? expense.applicableUnits
-            : building.units.map(u => u.id);
+        if (expense.distributionMethod !== 'general') {
+             const applicableUnitIds = expense.distributionMethod === 'custom' && expense.applicableUnits?.length
+                ? expense.applicableUnits
+                : building.units.map(u => u.id);
 
-        applicableUnitIds.forEach(unitId => {
-            paymentStatus[unitId] = 'unpaid';
-        });
+            applicableUnitIds.forEach(unitId => {
+                paymentStatus[unitId] = 'unpaid';
+            });
+        }
+
 
         const newExpense: Expense = {
             ...expense,
@@ -168,7 +171,12 @@ export const useBuildingData = () => {
           const updatedExpenses = b.expenses.map(e => {
               if (e.id !== expenseId) return e;
               
-              const paymentStatus = e.paymentStatus; // Keep existing payment statuses
+              let paymentStatus = e.paymentStatus; // Keep existing payment statuses
+              // If distribution method changes from something to general, clear payment status
+              if (e.distributionMethod !== 'general' && expenseData.distributionMethod === 'general') {
+                  paymentStatus = {};
+              }
+
               const updatedExpense: Expense = {
                   ...e, // keep id and buildingId
                   ...expenseData,

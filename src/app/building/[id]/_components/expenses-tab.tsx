@@ -5,7 +5,7 @@ import { Building, Expense, Unit, useBuildingData, PaymentStatus, ChargeTo } fro
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Users, Calendar, Building as BuildingIcon } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, UserCheck, Edit, Trash2, Users, Calendar, Building as BuildingIcon, Hammer } from 'lucide-react';
 import { AddExpenseDialog } from './add-expense-dialog';
 import { Badge } from '@/components/ui/badge';
 import { PaymentStatusBadge } from './payment-status-badge';
@@ -39,6 +39,10 @@ interface ExpensesTabProps {
 }
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
+    if (expense.distributionMethod === 'general') {
+        return 0; // No amount per unit for general expenses
+    }
+    
     let amount = 0;
     
     const chargeTo = expense.chargeTo || 'all';
@@ -250,8 +254,9 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                 <div className="flex flex-col gap-1">
                                     <span>{getExpenseDescription(expense.description)}</span>
                                     <div className="flex items-center gap-2 flex-wrap">
+                                        {expense.distributionMethod === 'general' && <Badge variant="secondary" className="w-fit text-xs flex items-center gap-1"><Hammer size={12} />{t('expensesTab.badges.generalExpense')}</Badge>}
                                         {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs flex items-center gap-1"><UserCheck size={12} />{t('expensesTab.badges.paidByManager')}</Badge>}
-                                         <Badge variant="outline" className="w-fit text-xs flex items-center gap-1"><Users size={12} />{chargeToText(expense.chargeTo)}</Badge>
+                                        {expense.distributionMethod !== 'general' && <Badge variant="outline" className="w-fit text-xs flex items-center gap-1"><Users size={12} />{chargeToText(expense.chargeTo)}</Badge>}
                                     </div>
                                 </div>
                             </TableCell>
@@ -360,10 +365,10 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <span>{t('expensesTab.addExpense')}</span>
                     </Button>
                 </div>
-                 <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start sm:items-end">
+                 <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start rtl:sm:items-end ltr:sm:items-start">
                      <div className="flex flex-wrap gap-4 items-center w-full justify-start rtl:justify-end">
                         <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-x-4 gap-y-2 items-center" dir={direction}>
-                            <Label>{t('expensesTab.viewMode.title')}</Label>
+                            <Label className="hidden sm:inline-block">{t('expensesTab.viewMode.title')}</Label>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="byDate" id="byDate" />
                                 <Label htmlFor="byDate" className="font-normal flex items-center gap-2"><Calendar size={16}/> {t('expensesTab.viewMode.byDate')}</Label>

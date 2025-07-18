@@ -112,7 +112,8 @@
             "paidByManager": "Paid by manager",
             "chargeToAll": "All Residents",
             "chargeToOwner": "Owner Only",
-            "chargeToTenant": "Tenant Only"
+            "chargeToTenant": "Tenant Only",
+            "generalExpense": "General Expense"
         },
         "viewMode": {
             "title": "View Mode",
@@ -144,7 +145,8 @@
             "unit_count": "By number of units",
             "occupants": "By number of occupants",
             "area": "By area",
-            "custom": "Assign to each unit"
+            "custom": "Assign to each unit",
+            "general": "General Building Expense"
         },
         "categories": {
             "monthly_charge": "Monthly Charge",

@@ -18,6 +18,10 @@ interface ReportsTabProps {
 }
 
 const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): number => {
+    if (expense.distributionMethod === 'general') {
+        return 0; // No amount per unit for general expenses
+    }
+    
     let amount = 0;
     
     const chargeTo = expense.chargeTo || 'all';
@@ -117,6 +121,10 @@ export function ReportsTab({ building }: ReportsTabProps) {
                 if (e.distributionMethod === 'custom') {
                     return sum + (e.totalAmount * (e.applicableUnits?.length || 0));
                 }
+                 // For general expenses, it's just the total amount
+                if (e.distributionMethod === 'general') {
+                    return sum + e.totalAmount;
+                }
                 return sum + e.totalAmount;
             }, 0);
 
@@ -154,6 +162,22 @@ export function ReportsTab({ building }: ReportsTabProps) {
     const handleExport = () => {
         try {
             const data = building.expenses.flatMap(expense => {
+                 if (expense.distributionMethod === 'general') {
+                    return {
+                        'شرح هزینه': getExpenseDescription(expense.description),
+                        'تاریخ': format(new Date(expense.date), 'yyyy/MM/dd'),
+                        'مبلغ کل هزینه': Math.ceil(expense.totalAmount),
+                        'روش تقسیم': t(`addExpenseDialog.methods.${expense.distributionMethod}`),
+                        'پرداخت توسط مدیر': t('global.yes'),
+                        'کسر از صندوق': t('global.yes'),
+                        'شارژ ساختمان': t('global.no'),
+                        'واحد': '-',
+                        'مالک': '-',
+                        'مستاجر': '-',
+                        'سهم واحد': 0,
+                        'وضعیت پرداخت': '-',
+                    };
+                }
                 return building.units.map(unit => {
                     const amount = getAmountPerUnit(expense, unit, building.units);
                     if (amount === 0) return null;
@@ -284,7 +308,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             <Card>
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse ltr:flex-row w-full rtl:text-right ltr:text-left">
+                    <CardTitle className="flex items-center gap-2 rtl:flex-row-reverse ltr:flex-row rtl:justify-end ltr:justify-start w-full">
                         <AlertTriangle className="text-destructive"/>
                         {t('reportsTab.overdue.title')}
                     </CardTitle>

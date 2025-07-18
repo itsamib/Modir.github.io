@@ -17,7 +17,7 @@ export interface Expense {
   description: string; // Can be a translation key or a custom string
   totalAmount: number;
   date: string; // ISO string
-  distributionMethod: "unit_count" | "occupants" | "area" | "custom";
+  distributionMethod: "unit_count" | "occupants" | "area" | "custom" | "general";
   paymentStatus: Record<string, PaymentStatus>;
   paidByManager: boolean;
   chargeTo: ChargeTo;

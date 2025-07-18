@@ -98,7 +98,11 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
         if (!paidByManager) {
             setDeductFromFund(false);
         }
-    }, [paidByManager]);
+        if (distributionMethod === 'general') {
+            setPaidByManager(true);
+            setDeductFromFund(true);
+        }
+    }, [paidByManager, distributionMethod]);
 
     const handleUnitSelection = (unitId: string, checked: boolean) => {
         setApplicableUnits(prev => 
@@ -136,7 +140,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             date: date.toISOString(),
             distributionMethod,
             paidByManager,
-            chargeTo,
+            chargeTo: distributionMethod === 'general' ? 'all' : chargeTo,
             applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
             isBuildingCharge,
             deductFromFund: paidByManager ? deductFromFund : false,
@@ -233,6 +237,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                     <SelectItem value="occupants">{t('addExpenseDialog.methods.occupants')}</SelectItem>
                     <SelectItem value="area">{t('addExpenseDialog.methods.area')}</SelectItem>
                     <SelectItem value="custom">{t('addExpenseDialog.methods.custom')}</SelectItem>
+                    <SelectItem value="general">{t('addExpenseDialog.methods.general')}</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -268,38 +273,40 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             </div>
            )}
 
-          <div className="grid grid-cols-4 items-center gap-4">
-             <Label className="text-right rtl:text-left text-xs">{t('addExpenseDialog.chargeTo')}</Label>
-             <RadioGroup
-                value={chargeTo}
-                onValueChange={(val: ChargeTo) => setChargeTo(val)}
-                className="col-span-3 flex items-center gap-x-4"
-                dir={direction}
-              >
-                <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <RadioGroupItem value="all" id="r-all" />
-                    <Label htmlFor="r-all" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.all')}</Label>
+            {distributionMethod !== 'general' && (
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label className="text-right rtl:text-left text-xs">{t('addExpenseDialog.chargeTo')}</Label>
+                    <RadioGroup
+                        value={chargeTo}
+                        onValueChange={(val: ChargeTo) => setChargeTo(val)}
+                        className="col-span-3 flex items-center gap-x-4"
+                        dir={direction}
+                    >
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <RadioGroupItem value="all" id="r-all" />
+                            <Label htmlFor="r-all" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.all')}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <RadioGroupItem value="owner" id="r-owner" />
+                            <Label htmlFor="r-owner" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.owner')}</Label>
+                        </div>
+                        <div className="flex items-center space-x-2 rtl:space-x-reverse">
+                            <RadioGroupItem value="tenant" id="r-tenant" />
+                            <Label htmlFor="r-tenant" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.tenant')}</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
-                <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <RadioGroupItem value="owner" id="r-owner" />
-                    <Label htmlFor="r-owner" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.owner')}</Label>
-                </div>
-                <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <RadioGroupItem value="tenant" id="r-tenant" />
-                    <Label htmlFor="r-tenant" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.tenant')}</Label>
-                </div>
-            </RadioGroup>
-          </div>
+            )}
           
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="paidByManager" className="text-right rtl:text-left text-xs">{t('addExpenseDialog.paidByManager')}</Label>
-            <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
+            <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" disabled={distributionMethod === 'general'} />
           </div>
 
            {paidByManager && (
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="deductFromFund" className="text-right rtl:text-left text-xs">{t('addExpenseDialog.deductFromFund')}</Label>
-              <Switch id="deductFromFund" checked={deductFromFund} onCheckedChange={setDeductFromFund} className="col-span-3 justify-self-start" />
+              <Switch id="deductFromFund" checked={deductFromFund} onCheckedChange={setDeductFromFund} className="col-span-3 justify-self-start" disabled={distributionMethod === 'general'} />
             </div>
           )}
 

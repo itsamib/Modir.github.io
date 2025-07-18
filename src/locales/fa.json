@@ -112,7 +112,8 @@
             "paidByManager": "پرداخت توسط مدیر",
             "chargeToAll": "همه ساکنین",
             "chargeToOwner": "فقط مالک",
-            "chargeToTenant": "فقط مستاجر"
+            "chargeToTenant": "فقط مستاجر",
+            "generalExpense": "هزینه عمومی"
         },
         "viewMode": {
             "title": "حالت نمایش",
@@ -144,7 +145,8 @@
             "unit_count": "بر اساس تعداد واحد",
             "occupants": "بر اساس تعداد نفرات",
             "area": "بر اساس متراژ",
-            "custom": "اختصاص به هر واحد"
+            "custom": "اختصاص به هر واحد",
+            "general": "هزینه عمومی ساختمان (بدون تقسیم)"
         },
         "categories": {
             "monthly_charge": "شارژ ماهیانه",
