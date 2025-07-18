@@ -7,7 +7,7 @@ import { ExpensesTab } from "./expenses-tab";
 import { UnitsTab } from "./units-tab";
 import { ReportsTab } from "./reports-tab";
 import Link from "next/link";
-import { ArrowRight, Building2, ArrowLeft } from "lucide-react";
+import { ArrowRight, Building2, ArrowLeft, Home, LayoutDashboard, Receipt } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLanguage } from "@/context/language-context";
 
@@ -35,7 +35,7 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
     fetchBuilding();
   };
   
-  const ArrowIcon = language === 'fa' ? ArrowRight : ArrowLeft;
+  const ArrowIcon = language === 'fa' ? ArrowLeft : ArrowRight;
 
   if (loading || building === undefined) {
     return (
@@ -76,9 +76,9 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
 
       <Tabs defaultValue="expenses" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-muted/50">
-          <TabsTrigger value="expenses">{t('dashboard.tabs.expenses')}</TabsTrigger>
-          <TabsTrigger value="units">{t('dashboard.tabs.units')}</TabsTrigger>
-          <TabsTrigger value="reports">{t('dashboard.tabs.reports')}</TabsTrigger>
+          <TabsTrigger value="expenses" className="flex items-center gap-2"><Receipt size={16} />{t('dashboard.tabs.expenses')}</TabsTrigger>
+          <TabsTrigger value="units" className="flex items-center gap-2"><Home size={16} />{t('dashboard.tabs.units')}</TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2"><LayoutDashboard size={16} />{t('dashboard.tabs.reports')}</TabsTrigger>
         </TabsList>
         <TabsContent value="expenses">
           <ExpensesTab building={building} onDataChange={handleDataChange} />

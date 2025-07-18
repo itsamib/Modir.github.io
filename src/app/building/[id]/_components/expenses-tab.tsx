@@ -243,8 +243,8 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                 <div className="flex flex-col gap-1">
                                     <span>{getExpenseDescription(expense.description)}</span>
                                     <div className="flex items-center gap-2 flex-wrap">
-                                        {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="mx-1"/>{t('expensesTab.badges.paidByManager')}</Badge>}
-                                         <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="mx-1"/>{chargeToText(expense.chargeTo)}</Badge>
+                                        {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs flex items-center gap-1"><UserCheck size={12} />{t('expensesTab.badges.paidByManager')}</Badge>}
+                                         <Badge variant="outline" className="w-fit text-xs flex items-center gap-1"><Users size={12} />{chargeToText(expense.chargeTo)}</Badge>
                                     </div>
                                 </div>
                             </TableCell>
@@ -353,8 +353,8 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                         <span>{t('expensesTab.addExpense')}</span>
                     </Button>
                 </div>
-                 <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start rtl:items-end">
-                     <div className="flex flex-wrap gap-4 items-center">
+                 <div className="flex flex-col gap-4 pt-4 border-t mt-4 items-start sm:items-end">
+                     <div className="flex flex-wrap gap-4 items-center justify-end w-full">
                         <Label>{t('expensesTab.viewMode.title')}</Label>
                         <RadioGroup value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="flex gap-4" dir={direction}>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
@@ -369,7 +369,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     </div>
 
                     {viewMode === 'byDate' && (
-                        <div className="flex flex-wrap gap-4 items-center">
+                        <div className="flex flex-wrap gap-4 items-center justify-end w-full">
                             <SlidersHorizontal className="text-muted-foreground" />
                             <Select value={yearFilter} onValueChange={setYearFilter} dir={direction}>
                                 <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByYear')} /></SelectTrigger>
@@ -386,7 +386,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                             </Select>
                         </div>
                     )}
-                    <div className="flex flex-wrap gap-4 items-center">
+                    <div className="flex flex-wrap gap-4 items-center justify-end w-full">
                         <div className="flex items-center space-x-2 rtl:space-x-reverse">
                             <UserCheck className="text-muted-foreground"/>
                             <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>

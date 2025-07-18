@@ -10,6 +10,7 @@ import { Download, Users, Home, UserX, Wallet, AlertTriangle, ArrowDown, ArrowUp
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { format, startOfMonth } from 'date-fns-jalali';
+import { faIR, enUS } from 'date-fns-jalali/locale';
 import { useLanguage } from '@/context/language-context';
 
 interface ReportsTabProps {
@@ -111,7 +112,13 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
         const fundOutflow = building.expenses
             .filter(e => e.deductFromFund)
-            .reduce((sum, e) => sum + e.totalAmount, 0);
+            .reduce((sum, e) => {
+                // For custom distribution, totalAmount is per unit
+                if (e.distributionMethod === 'custom') {
+                    return sum + (e.totalAmount * (e.applicableUnits?.length || 0));
+                }
+                return sum + e.totalAmount;
+            }, 0);
 
         const fundBalance = fundInflow - fundOutflow;
         
@@ -254,9 +261,12 @@ export function ReportsTab({ building }: ReportsTabProps) {
                 </CardHeader>
                  <CardContent className="space-y-4">
                     <div className="flex items-center justify-center p-6 rounded-lg bg-gradient-to-br from-primary/80 to-primary text-primary-foreground">
-                        <div className="text-center">
-                            <p className="font-semibold">{t('reportsTab.fund.balance')}</p>
-                            <p className="text-4xl font-bold tracking-tight">{formatNumber(stats.fundBalance)} {t('addExpenseDialog.currency')}</p>
+                        <div className="text-center flex items-center gap-4">
+                            <Wallet size={40}/>
+                            <div>
+                                <p className="font-semibold">{t('reportsTab.fund.balance')}</p>
+                                <p className="text-4xl font-bold tracking-tight">{formatNumber(stats.fundBalance)} {t('addExpenseDialog.currency')}</p>
+                            </div>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-center">

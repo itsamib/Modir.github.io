@@ -5,7 +5,7 @@ import { Building, Unit, useBuildingData } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PlusCircle, Edit } from 'lucide-react';
+import { PlusCircle, Edit, Home } from 'lucide-react';
 import { AddUnitDialog } from './add-unit-dialog';
 import { useLanguage } from '@/context/language-context';
 
