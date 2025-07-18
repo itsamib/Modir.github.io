@@ -314,7 +314,7 @@ export function ReportsTab({ building }: ReportsTabProps) {
                 <CardContent className="space-y-6">
                     <div className="space-y-4">
                         <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
-                        <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType}>
+                        <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType} dir={language === 'fa' ? 'rtl' : 'ltr'}>
                             <div className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value="values" id="r1" />
                                 <Label htmlFor="r1">{t('reportsTab.exportValues')}</Label>
