@@ -206,6 +206,11 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             // --- Individual Unit Sheets ---
             building.units.forEach(unit => {
+                if (typeof unit.unitNumber !== 'number') {
+                    console.warn(`Skipping sheet for unit with invalid unitNumber:`, unit);
+                    return; // Skip if unitNumber is not valid
+                }
+
                 const unitExpensesData = building.expenses.map(expense => {
                     const amount = getAmountPerUnit(expense, unit, building.units);
                     if (amount === 0) return null;
