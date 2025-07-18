@@ -46,24 +46,32 @@ const loadInitialData = () => {
     }
 };
 
+// Load data synchronously on script load
 loadInitialData();
 
 export const useBuildingData = () => {
   const [buildings, setBuildings] = useState<Building[]>(memoryState);
-  const [loading, setLoading] = useState(true);
+  // Only set loading to true if there's truly nothing loaded yet.
+  const [loading, setLoading] = useState(() => {
+    if (typeof window === 'undefined') return true; // Still loading on server
+    return memoryState.length === 0 && !localStorage.getItem(STORAGE_KEY);
+  });
 
   useEffect(() => {
+    // This listener keeps all hook instances in sync
     const listener = (newState: Building[]) => {
       setBuildings(newState);
-      if (loading) setLoading(false);
+      if (loading && newState.length > 0) {
+          setLoading(false);
+      }
     };
     listeners.add(listener);
     
-    if(memoryState.length > 0 || localStorage.getItem(STORAGE_KEY)) {
+    // Initial sync and loading state check
+    if (memoryState.length > 0 && loading) {
         setLoading(false);
     }
-    
-    listener(memoryState);
+    setBuildings(memoryState);
 
     return () => {
       listeners.delete(listener);
