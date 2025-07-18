@@ -49,7 +49,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     const [distributionMethod, setDistributionMethod] = useState<Expense['distributionMethod']>('unit_count');
     const [paidByManager, setPaidByManager] = useState(false);
     const [chargeTo, setChargeTo] = useState<ChargeTo>('all');
-    const [applicableUnits, setApplicableUnits] = useState<string[]>([]);
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -61,7 +60,6 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setDistributionMethod(expense.distributionMethod);
                 setPaidByManager(expense.paidByManager);
                 setChargeTo(expense.chargeTo || 'all');
-                setApplicableUnits(expense.applicableUnits || units.map(u => u.id));
             } else {
                 setDescription('');
                 setTotalAmount('');
@@ -69,26 +67,15 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 setDistributionMethod('unit_count');
                 setPaidByManager(false);
                 setChargeTo('all');
-                setApplicableUnits(units.map(u => u.id));
             }
             setError('');
         }
     }, [isOpen, expense, units]);
     
-    useEffect(() => {
-        if (distributionMethod !== 'custom') {
-            setApplicableUnits(units.map(u => u.id));
-        }
-    }, [distributionMethod, units]);
-
 
     const handleSave = () => {
         if (!description.trim() || totalAmount === '' || totalAmount <= 0) {
             setError('شرح هزینه و مبلغ باید معتبر باشند.');
-            return;
-        }
-        if (distributionMethod === 'custom' && applicableUnits.length === 0) {
-            setError('برای اختصاص هزینه، باید حداقل یک واحد را انتخاب کنید.');
             return;
         }
         setError('');
@@ -99,25 +86,9 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             distributionMethod,
             paidByManager,
             chargeTo,
-            applicableUnits: distributionMethod === 'custom' ? applicableUnits : undefined,
+            applicableUnits: undefined, // applicableUnits is only for custom
         }, expense?.id);
     };
-    
-    const handleUnitCheck = (unitId: string) => {
-        setApplicableUnits(prev => 
-            prev.includes(unitId)
-                ? prev.filter(id => id !== unitId)
-                : [...prev, unitId]
-        );
-    }
-
-    const handleSelectAllUnits = (checked: boolean | 'indeterminate') => {
-        if (checked === true) {
-            setApplicableUnits(units.map(u => u.id));
-        } else {
-            setApplicableUnits([]);
-        }
-    }
     
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -140,9 +111,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
               />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="totalAmount" className="text-right text-xs">
-                {distributionMethod === 'custom' ? 'مبلغ برای هر واحد' : 'مبلغ کل'} (تومان)
-            </Label>
+            <Label htmlFor="totalAmount" className="text-right text-xs">مبلغ کل (تومان)</Label>
             <Input 
                 id="totalAmount" 
                 type="number" 
@@ -177,55 +146,44 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 </PopoverContent>
             </Popover>
           </div>
-          
+           <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="distributionMethod" className="text-right text-xs">روش تقسیم</Label>
+            <Select 
+                value={distributionMethod} 
+                onValueChange={(val: Expense['distributionMethod']) => setDistributionMethod(val)}
+                dir="rtl"
+            >
+                <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="روش تقسیم را انتخاب کنید..." />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectItem value="unit_count">بر اساس تعداد واحد</SelectItem>
+                    <SelectItem value="occupants">بر اساس تعداد نفرات</SelectItem>
+                    <SelectItem value="area">بر اساس متراژ</SelectItem>
+                </SelectContent>
+            </Select>
+          </div>
            <div className="grid grid-cols-4 items-center gap-4">
              <Label className="text-right text-xs">پرداخت برای</Label>
              <RadioGroup
                 value={chargeTo}
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
-                className="col-span-3 flex items-center space-x-4 space-x-reverse"
+                className="col-span-3 flex items-center space-x-4 rtl:space-x-reverse"
               >
-                <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="all" id="r-all" />
                     <Label htmlFor="r-all" className="text-xs font-normal">همه ساکنین</Label>
                 </div>
-                <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="owner" id="r-owner" />
                     <Label htmlFor="r-owner" className="text-xs font-normal">فقط مالک</Label>
                 </div>
-                <div className="flex items-center space-x-2 space-x-reverse">
+                <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="tenant" id="r-tenant" />
                     <Label htmlFor="r-tenant" className="text-xs font-normal">فقط مستاجر</Label>
                 </div>
             </RadioGroup>
           </div>
-
-          {distributionMethod === 'custom' && (
-              <div className="col-span-4 border rounded-md p-4 space-y-3">
-                <Label className="font-semibold text-xs">واحدهای مورد نظر را انتخاب کنید:</Label>
-                 <div className="flex items-center space-x-2 space-x-reverse pb-2 border-b">
-                    <Checkbox 
-                        id="select-all-units"
-                        checked={units.length > 0 && applicableUnits.length === units.length ? true : applicableUnits.length === 0 ? false : 'indeterminate'}
-                        onCheckedChange={handleSelectAllUnits}
-                    />
-                    <Label htmlFor="select-all-units" className="font-bold text-xs">انتخاب همه واحدها</Label>
-                </div>
-                <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-                    {units.map(unit => (
-                        <div key={unit.id} className="flex items-center space-x-2 space-x-reverse">
-                            <Checkbox 
-                                id={`unit-${unit.id}`}
-                                checked={applicableUnits.includes(unit.id)}
-                                onCheckedChange={() => handleUnitCheck(unit.id)}
-                            />
-                            <Label htmlFor={`unit-${unit.id}`} className="font-normal text-xs">{unit.name}</Label>
-                        </div>
-                    ))}
-                </div>
-                <p className="text-xs text-muted-foreground pt-2">مبلغ وارد شده، عیناً به هر یک از واحدهای انتخاب شده اختصاص می‌یابد.</p>
-              </div>
-          )}
            <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="paidByManager" className="text-right text-xs">پرداختی مدیر</Label>
             <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
