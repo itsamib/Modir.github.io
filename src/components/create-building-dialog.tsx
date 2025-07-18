@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useLanguage } from '@/context/language-context';
 
 interface CreateBuildingDialogProps {
   isOpen: boolean;
@@ -23,14 +24,15 @@ export function CreateBuildingDialog({ isOpen, onClose, onSave }: CreateBuilding
   const [name, setName] = useState('');
   const [unitCount, setUnitCount] = useState(1);
   const [error, setError] = useState('');
+  const { t } = useLanguage();
 
   const handleSave = () => {
     if (!name.trim()) {
-      setError('نام ساختمان نمی‌تواند خالی باشد.');
+      setError(t('createBuildingDialog.errorNameRequired'));
       return;
     }
     if (unitCount <= 0) {
-      setError('تعداد واحدها باید حداقل ۱ باشد.');
+      setError(t('createBuildingDialog.errorUnitsRequired'));
       return;
     }
     setError('');
@@ -50,27 +52,27 @@ export function CreateBuildingDialog({ isOpen, onClose, onSave }: CreateBuilding
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">ایجاد ساختمان جدید</DialogTitle>
+          <DialogTitle className="font-headline">{t('createBuildingDialog.title')}</DialogTitle>
           <DialogDescription>
-            اطلاعات ساختمان جدید را برای شروع مدیریت هزینه‌ها وارد کنید.
+            {t('createBuildingDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              نام ساختمان
+              {t('createBuildingDialog.nameLabel')}
             </Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="col-span-3"
-              placeholder="مثال: برج بهار"
+              placeholder={t('createBuildingDialog.namePlaceholder')}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="unitCount" className="text-right">
-              تعداد واحدها
+              {t('createBuildingDialog.unitsLabel')}
             </Label>
             <Input
               id="unitCount"
@@ -83,8 +85,8 @@ export function CreateBuildingDialog({ isOpen, onClose, onSave }: CreateBuilding
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={handleClose}>لغو</Button>
-          <Button type="submit" onClick={handleSave}>ذخیره</Button>
+          <Button variant="outline" onClick={handleClose}>{t('global.cancel')}</Button>
+          <Button type="submit" onClick={handleSave}>{t('global.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

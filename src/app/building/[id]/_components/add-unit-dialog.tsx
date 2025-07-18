@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useLanguage } from '@/context/language-context';
 
 interface AddUnitDialogProps {
   isOpen: boolean;
@@ -30,6 +31,7 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     tenantName: ''
   });
   const [error, setError] = useState('');
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (unit) {
@@ -57,7 +59,7 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
 
   const handleSave = () => {
     if (!formData.name.trim() || !formData.ownerName.trim()) {
-        setError('نام واحد و نام مالک نمی‌توانند خالی باشند.');
+        setError(t('addUnitDialog.errorNameRequired'));
         return;
     }
     setError('');
@@ -71,37 +73,37 @@ export function AddUnitDialog({ isOpen, onClose, onSave, unit }: AddUnitDialogPr
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="font-headline">{unit ? 'ویرایش واحد' : 'افزودن واحد جدید'}</DialogTitle>
+          <DialogTitle className="font-headline">{unit ? t('addUnitDialog.editTitle') : t('addUnitDialog.addTitle')}</DialogTitle>
           <DialogDescription>
-            اطلاعات واحد را وارد یا ویرایش کنید.
+            {t('addUnitDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">نام واحد</Label>
+            <Label htmlFor="name" className="text-right">{t('addUnitDialog.nameLabel')}</Label>
             <Input id="name" value={formData.name} onChange={handleChange} className="col-span-3"/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="area" className="text-right">متراژ (متر مربع)</Label>
+            <Label htmlFor="area" className="text-right">{t('addUnitDialog.areaLabel')}</Label>
             <Input id="area" type="number" value={formData.area} onChange={handleChange} className="col-span-3"/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="occupants" className="text-right">تعداد نفرات</Label>
+            <Label htmlFor="occupants" className="text-right">{t('addUnitDialog.occupantsLabel')}</Label>
             <Input id="occupants" type="number" value={formData.occupants} onChange={handleChange} className="col-span-3"/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="ownerName" className="text-right">نام مالک</Label>
+            <Label htmlFor="ownerName" className="text-right">{t('addUnitDialog.ownerNameLabel')}</Label>
             <Input id="ownerName" value={formData.ownerName} onChange={handleChange} className="col-span-3"/>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="tenantName" className="text-right">نام مستاجر</Label>
-            <Input id="tenantName" value={formData.tenantName} onChange={handleChange} className="col-span-3" placeholder="(اختیاری)"/>
+            <Label htmlFor="tenantName" className="text-right">{t('addUnitDialog.tenantNameLabel')}</Label>
+            <Input id="tenantName" value={formData.tenantName} onChange={handleChange} className="col-span-3" placeholder={t('global.optional')}/>
           </div>
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>لغو</Button>
-          <Button type="submit" onClick={handleSave}>ذخیره</Button>
+          <Button variant="outline" onClick={onClose}>{t('global.cancel')}</Button>
+          <Button type="submit" onClick={handleSave}>{t('global.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

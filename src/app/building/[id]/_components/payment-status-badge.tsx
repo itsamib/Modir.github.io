@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import type { PaymentStatus } from "@/hooks/use-building-data";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/context/language-context";
 
 interface PaymentStatusBadgeProps {
   status: PaymentStatus;
@@ -12,6 +13,7 @@ interface PaymentStatusBadgeProps {
 
 export function PaymentStatusBadge({ status, onClick }: PaymentStatusBadgeProps) {
   const isPaid = status === "paid";
+  const { t } = useLanguage();
   
   return (
     <button onClick={onClick} className="w-fit rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2">
@@ -23,7 +25,7 @@ export function PaymentStatusBadge({ status, onClick }: PaymentStatusBadgeProps)
         )}
       >
         {isPaid ? <CheckCircle2 size={12} /> : <XCircle size={12} />}
-        <span>{isPaid ? "پرداخت شده" : "پرداخت نشده"}</span>
+        <span>{isPaid ? t('paymentStatus.paid') : t('paymentStatus.unpaid')}</span>
       </Badge>
     </button>
   );

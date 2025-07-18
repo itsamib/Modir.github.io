@@ -1,0 +1,157 @@
+{
+    "global": {
+        "appName": "حسابدار ساختمانی",
+        "save": "ذخیره",
+        "cancel": "لغو",
+        "edit": "ویرایش",
+        "delete": "حذف",
+        "error": "خطا",
+        "success": "موفقیت",
+        "loading": "در حال بارگذاری...",
+        "optional": "(اختیاری)"
+    },
+    "header": {
+        "languageToggle": "FA / EN"
+    },
+    "home": {
+        "myBuildings": "ساختمان‌های من",
+        "newBuilding": "ساختمان جدید",
+        "loadingBuildings": "در حال بارگذاری ساختمان‌ها...",
+        "noBuildingsFound": "هیچ ساختمانی یافت نشد",
+        "noBuildingsCTA": "برای شروع، یک ساختمان جدید ایجاد کنید."
+    },
+    "createBuildingDialog": {
+        "title": "ایجاد ساختمان جدید",
+        "description": "اطلاعات ساختمان جدید را برای شروع مدیریت هزینه‌ها وارد کنید.",
+        "nameLabel": "نام ساختمان",
+        "namePlaceholder": "مثال: برج بهار",
+        "unitsLabel": "تعداد واحدها",
+        "errorNameRequired": "نام ساختمان نمی‌تواند خالی باشد.",
+        "errorUnitsRequired": "تعداد واحدها باید حداقل ۱ باشد."
+    },
+    "buildingList": {
+        "cardDescription": "مجموعه اطلاعات و هزینه‌های ساختمان",
+        "units": "واحد",
+        "expenses": "هزینه ثبت شده",
+        "viewDashboard": "مشاهده داشبورد"
+    },
+    "dashboard": {
+        "title": "داشبورد مدیریت هزینه‌ها و واحدهای ساختمان",
+        "buildingNotFound": "ساختمان یافت نشد",
+        "buildingNotFoundDesc": "ممکن است این ساختمان حذف شده باشد یا آدرس اشتباه باشد.",
+        "backToBuildings": "بازگشت به لیست ساختمان‌ها",
+        "tabs": {
+            "expenses": "هزینه‌ها",
+            "units": "واحدها",
+            "reports": "گزارش‌ها"
+        }
+    },
+    "unitsTab": {
+        "title": "مدیریت واحدها",
+        "description": "واحد‌های ساختمان خود را مشاهده و ویرایش کنید.",
+        "addUnit": "افزودن واحد",
+        "table": {
+            "name": "نام واحد",
+            "area": "متراژ (متر مربع)",
+            "occupants": "تعداد نفرات",
+            "ownerName": "نام مالک",
+            "tenantName": "نام مستاجر",
+            "actions": "عملیات"
+        }
+    },
+    "addUnitDialog": {
+        "addTitle": "افزودن واحد جدید",
+        "editTitle": "ویرایش واحد",
+        "description": "اطلاعات واحد را وارد یا ویرایش کنید.",
+        "nameLabel": "نام واحد",
+        "areaLabel": "متراژ (متر مربع)",
+        "occupantsLabel": "تعداد نفرات",
+        "ownerNameLabel": "نام مالک",
+        "tenantNameLabel": "نام مستاجر",
+        "errorNameRequired": "نام واحد و نام مالک نمی‌توانند خالی باشند."
+    },
+    "expensesTab": {
+        "title": "لیست هزینه‌ها",
+        "description": "هزینه‌های ثبت‌شده برای ساختمان را مشاهده و مدیریت کنید.",
+        "addExpense": "افزودن هزینه",
+        "filterByYear": "فیلتر بر اساس سال",
+        "allYears": "همه سال‌ها",
+        "filterByMonth": "فیلتر بر اساس ماه",
+        "allMonths": "همه ماه‌ها",
+        "managerPayments": "پرداختی‌های مدیر",
+        "noExpensesFound": "هیچ هزینه‌ای با فیلترهای انتخابی یافت نشد.",
+        "confirmDeleteTitle": "آیا از حذف این هزینه مطمئن هستید؟",
+        "confirmDeleteDesc": "این عمل قابل بازگشت نیست. با حذف این هزینه، تمام اطلاعات مربوط به آن برای همیشه پاک خواهد شد.",
+        "table": {
+            "description": "شرح هزینه",
+            "date": "تاریخ",
+            "totalAmount": "مبلغ کل",
+            "actions": "عملیات"
+        },
+        "badges": {
+            "paidByManager": "پرداخت توسط مدیر",
+            "chargeToAll": "همه ساکنین",
+            "chargeToOwner": "فقط مالک",
+            "chargeToTenant": "فقط مستاجر"
+        }
+    },
+    "paymentStatus": {
+        "paid": "پرداخت شده",
+        "unpaid": "پرداخت نشده"
+    },
+    "addExpenseDialog": {
+        "addTitle": "افزودن هزینه جدید",
+        "editTitle": "ویرایش هزینه",
+        "description": "اطلاعات هزینه را وارد کنید.",
+        "expenseDescription": "شرح هزینه",
+        "descriptionPlaceholder": "انتخاب یا ورود شرح...",
+        "totalAmount": "مبلغ کل",
+        "amountPerUnit": "مبلغ برای هر واحد",
+        "currency": "(تومان)",
+        "date": "تاریخ",
+        "selectDate": "یک تاریخ انتخاب کنید",
+        "distributionMethod": "روش تقسیم",
+        "selectDistributionMethod": "روش تقسیم را انتخاب کنید...",
+        "methods": {
+            "unit_count": "بر اساس تعداد واحد",
+            "occupants": "بر اساس تعداد نفرات",
+            "area": "بر اساس متراژ",
+            "custom": "اختصاص به هر واحد"
+        },
+        "customAllocation": {
+            "description": "مبلغ وارد شده، عیناً به هر یک از واحدهای انتخاب شده اختصاص می‌یابد و تقسیم نمی‌شود.",
+            "selectAll": "انتخاب همه"
+        },
+        "chargeTo": "پرداخت برای",
+        "chargeToOptions": {
+            "all": "همه ساکنین",
+            "owner": "فقط مالک",
+            "tenant": "فقط مستاجر"
+        },
+        "paidByManager": "پرداختی مدیر",
+        "errorInvalid": "شرح هزینه و مبلغ باید معتبر باشند.",
+        "errorCustomNoUnits": "در روش اختصاصی، حداقل یک واحد باید انتخاب شود."
+    },
+    "suggestedExpenses": {
+        "monthly_charge": "شارژ ماهیانه",
+        "water_bill": "قبض آب",
+        "electricity_bill": "قبض برق",
+        "gas_bill": "قبض گاز",
+        "cleaning": "نظافت"
+    },
+    "reportsTab": {
+        "title": "تهیه گزارش اکسل",
+        "description": "از اطلاعات هزینه‌ها و واحدها خروجی اکسل تهیه کنید.",
+        "exportType": "نوع خروجی",
+        "exportValues": "فقط مقادیر محاسبه‌شده",
+        "exportValuesDesc": "خروجی شامل داده‌های نهایی و بدون فرمول‌های اکسل خواهد بود. (توصیه شده)",
+        "exportFormulas": "شامل فرمول‌های زنده اکسل (به زودی)",
+        "exportFormulasDesc": "خروجی شامل فرمول‌ها خواهد بود که محاسبات را در خود اکسل انجام می‌دهند.",
+        "exportButton": "تهیه خروجی",
+        "noData": "هیچ داده‌ای برای خروجی گرفتن وجود ندارد.",
+        "exportSuccessTitle": "خروجی اکسل موفق",
+        "exportSuccessDesc": "فایل اکسل برای ساختمان \"{buildingName}\" با موفقیت ایجاد شد.",
+        "exportErrorTitle": "خطا در تهیه خروجی",
+        "exportErrorDesc": "مشکلی در ایجاد فایل اکسل پیش آمد. لطفا دوباره تلاش کنید."
+    }
+}

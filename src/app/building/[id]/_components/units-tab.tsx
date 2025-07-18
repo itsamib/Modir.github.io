@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PlusCircle, Edit } from 'lucide-react';
 import { AddUnitDialog } from './add-unit-dialog';
+import { useLanguage } from '@/context/language-context';
 
 interface UnitsTabProps {
     building: Building;
@@ -17,6 +18,7 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
     const { addUnitToBuilding, updateUnitInBuilding } = useBuildingData();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
+    const { t } = useLanguage();
 
     const handleSaveUnit = (unitData: Omit<Unit, 'id'>) => {
         const callback = () => {
@@ -46,24 +48,24 @@ export function UnitsTab({ building, onDataChange }: UnitsTabProps) {
         <Card>
             <CardHeader className="flex flex-row justify-between items-center">
                 <div>
-                    <CardTitle>مدیریت واحدها</CardTitle>
-                    <CardDescription>واحد‌های ساختمان خود را مشاهده و ویرایش کنید.</CardDescription>
+                    <CardTitle>{t('unitsTab.title')}</CardTitle>
+                    <CardDescription>{t('unitsTab.description')}</CardDescription>
                 </div>
                 <Button onClick={openAddDialog} className="flex items-center gap-2">
                     <PlusCircle size={20} />
-                    <span>افزودن واحد</span>
+                    <span>{t('unitsTab.addUnit')}</span>
                 </Button>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>نام واحد</TableHead>
-                            <TableHead>متراژ (متر مربع)</TableHead>
-                            <TableHead>تعداد نفرات</TableHead>
-                            <TableHead>نام مالک</TableHead>
-                            <TableHead>نام مستاجر</TableHead>
-                            <TableHead>عملیات</TableHead>
+                            <TableHead>{t('unitsTab.table.name')}</TableHead>
+                            <TableHead>{t('unitsTab.table.area')}</TableHead>
+                            <TableHead>{t('unitsTab.table.occupants')}</TableHead>
+                            <TableHead>{t('unitsTab.table.ownerName')}</TableHead>
+                            <TableHead>{t('unitsTab.table.tenantName')}</TableHead>
+                            <TableHead>{t('unitsTab.table.actions')}</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

@@ -1,7 +1,6 @@
-
 "use client"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Expense, Unit, ChargeTo } from "@/hooks/use-building-data"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,6 +25,7 @@ import { faIR } from 'date-fns-jalali/locale';
 import { cn } from '@/lib/utils';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
+import { useLanguage } from '@/context/language-context';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -35,15 +35,18 @@ interface AddExpenseDialogProps {
   expense: Expense | null;
 }
 
-const suggestedExpenses = [
-    { value: 'شارژ ماهیانه', label: 'شارژ ماهیانه' },
-    { value: 'قبض آب', label: 'قبض آب' },
-    { value: 'قبض برق', label: 'قبض برق' },
-    { value: 'قبض گاز', label: 'قبض گاز' },
-    { value: 'نظافت', label: 'نظافت' },
-];
 
 export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: AddExpenseDialogProps) {
+    const { t, language, direction } = useLanguage();
+    
+    const suggestedExpenses = useMemo(() => [
+        { value: t('suggestedExpenses.monthly_charge'), label: t('suggestedExpenses.monthly_charge') },
+        { value: t('suggestedExpenses.water_bill'), label: t('suggestedExpenses.water_bill') },
+        { value: t('suggestedExpenses.electricity_bill'), label: t('suggestedExpenses.electricity_bill') },
+        { value: t('suggestedExpenses.gas_bill'), label: t('suggestedExpenses.gas_bill') },
+        { value: t('suggestedExpenses.cleaning'), label: t('suggestedExpenses.cleaning') },
+    ], [t]);
+
     const [description, setDescription] = useState('');
     const [totalAmount, setTotalAmount] = useState<number | ''>('');
     const [date, setDate] = useState<Date>(new Date());
@@ -88,11 +91,11 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
 
     const handleSave = () => {
         if (!description.trim() || totalAmount === '' || totalAmount <= 0) {
-            setError('شرح هزینه و مبلغ باید معتبر باشند.');
+            setError(t('addExpenseDialog.errorInvalid'));
             return;
         }
         if (distributionMethod === 'custom' && applicableUnits.length === 0) {
-            setError('در روش اختصاصی، حداقل یک واحد باید انتخاب شود.');
+            setError(t('addExpenseDialog.errorCustomNoUnits'));
             return;
         }
         setError('');
@@ -111,27 +114,27 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-headline">{expense ? 'ویرایش هزینه' : 'افزودن هزینه جدید'}</DialogTitle>
+          <DialogTitle className="font-headline">{expense ? t('addExpenseDialog.editTitle') : t('addExpenseDialog.addTitle')}</DialogTitle>
           <DialogDescription>
-            اطلاعات هزینه را وارد کنید.
+            {t('addExpenseDialog.description')}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto px-2">
           
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right text-xs">شرح هزینه</Label>
+            <Label htmlFor="description" className="text-right text-xs">{t('addExpenseDialog.expenseDescription')}</Label>
              <Combobox
                 items={suggestedExpenses}
                 value={description}
                 onChange={setDescription}
-                placeholder="انتخاب یا ورود شرح..."
+                placeholder={t('addExpenseDialog.descriptionPlaceholder')}
                 className="col-span-3"
               />
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="totalAmount" className="text-right text-xs">
-                {distributionMethod === 'custom' ? 'مبلغ برای هر واحد' : 'مبلغ کل'} (تومان)
+                {distributionMethod === 'custom' ? t('addExpenseDialog.amountPerUnit') : t('addExpenseDialog.totalAmount')} {t('addExpenseDialog.currency')}
             </Label>
             <Input 
                 id="totalAmount" 
@@ -143,7 +146,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
 
           <div className="grid grid-cols-4 items-center gap-4">
-             <Label htmlFor="date" className="text-right text-xs">تاریخ</Label>
+             <Label htmlFor="date" className="text-right text-xs">{t('addExpenseDialog.date')}</Label>
              <Popover>
                 <PopoverTrigger asChild>
                     <Button
@@ -154,7 +157,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                     )}
                     >
                     <CalendarIcon className="ml-2 h-4 w-4" />
-                    {date ? format(date, 'd MMMM yyyy', { locale: faIR }) : <span>یک تاریخ انتخاب کنید</span>}
+                    {date ? format(date, 'd MMMM yyyy', { locale: faIR }) : <span>{t('addExpenseDialog.selectDate')}</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -170,20 +173,20 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           </div>
 
            <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="distributionMethod" className="text-right text-xs">روش تقسیم</Label>
+            <Label htmlFor="distributionMethod" className="text-right text-xs">{t('addExpenseDialog.distributionMethod')}</Label>
             <Select 
                 value={distributionMethod} 
                 onValueChange={(val: Expense['distributionMethod']) => setDistributionMethod(val)}
-                dir="rtl"
+                dir={direction}
             >
                 <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="روش تقسیم را انتخاب کنید..." />
+                    <SelectValue placeholder={t('addExpenseDialog.selectDistributionMethod')} />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="unit_count">بر اساس تعداد واحد</SelectItem>
-                    <SelectItem value="occupants">بر اساس تعداد نفرات</SelectItem>
-                    <SelectItem value="area">بر اساس متراژ</SelectItem>
-                    <SelectItem value="custom">اختصاص به هر واحد</SelectItem>
+                    <SelectItem value="unit_count">{t('addExpenseDialog.methods.unit_count')}</SelectItem>
+                    <SelectItem value="occupants">{t('addExpenseDialog.methods.occupants')}</SelectItem>
+                    <SelectItem value="area">{t('addExpenseDialog.methods.area')}</SelectItem>
+                    <SelectItem value="custom">{t('addExpenseDialog.methods.custom')}</SelectItem>
                 </SelectContent>
             </Select>
           </div>
@@ -191,7 +194,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
           {distributionMethod === 'custom' && (
              <div className="col-span-4 space-y-4 rounded-lg border bg-muted/50 p-4">
                  <p className="text-xs text-muted-foreground">
-                    مبلغ وارد شده، عیناً به هر یک از واحدهای انتخاب شده اختصاص می‌یابد و تقسیم نمی‌شود.
+                    {t('addExpenseDialog.customAllocation.description')}
                 </p>
                 <Separator />
                 <div className="space-y-3">
@@ -201,7 +204,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                             checked={applicableUnits.length === units.length}
                             onCheckedChange={(checked) => handleSelectAll(checked as boolean)}
                         />
-                        <Label htmlFor="select-all-units" className="font-normal">انتخاب همه</Label>
+                        <Label htmlFor="select-all-units" className="font-normal">{t('addExpenseDialog.customAllocation.selectAll')}</Label>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 max-h-32 overflow-y-auto">
                         {units.map(unit => (
@@ -219,43 +222,41 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
             </div>
            )}
 
-           <div className="grid grid-cols-4 items-center gap-4">
-             <Label className="text-right text-xs">پرداخت برای</Label>
+          <div className="grid grid-cols-4 items-center gap-4">
+             <Label className="text-right text-xs">{t('addExpenseDialog.chargeTo')}</Label>
              <RadioGroup
                 value={chargeTo}
                 onValueChange={(val: ChargeTo) => setChargeTo(val)}
                 className="col-span-3 flex items-center gap-x-4"
-                dir='rtl'
+                dir={direction}
               >
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="all" id="r-all" />
-                    <Label htmlFor="r-all" className="font-normal text-xs">همه ساکنین</Label>
+                    <Label htmlFor="r-all" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.all')}</Label>
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="owner" id="r-owner" />
-                    <Label htmlFor="r-owner" className="font-normal text-xs">فقط مالک</Label>
+                    <Label htmlFor="r-owner" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.owner')}</Label>
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <RadioGroupItem value="tenant" id="r-tenant" />
-                    <Label htmlFor="r-tenant" className="font-normal text-xs">فقط مستاجر</Label>
+                    <Label htmlFor="r-tenant" className="font-normal text-xs">{t('addExpenseDialog.chargeToOptions.tenant')}</Label>
                 </div>
             </RadioGroup>
           </div>
           
            <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="paidByManager" className="text-right text-xs">پرداختی مدیر</Label>
+            <Label htmlFor="paidByManager" className="text-right text-xs">{t('addExpenseDialog.paidByManager')}</Label>
             <Switch id="paidByManager" checked={paidByManager} onCheckedChange={setPaidByManager} className="col-span-3 justify-self-start" />
           </div>
 
           {error && <p className="text-sm font-medium text-destructive col-span-4 text-center">{error}</p>}
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>لغو</Button>
-          <Button type="submit" onClick={handleSave}>ذخیره</Button>
+          <Button variant="outline" onClick={onClose}>{t('global.cancel')}</Button>
+          <Button type="submit" onClick={handleSave}>{t('global.save')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
-
-    

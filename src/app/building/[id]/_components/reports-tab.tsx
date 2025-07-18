@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState } from 'react';
@@ -11,6 +10,7 @@ import { Download } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import * as XLSX from 'xlsx';
 import { format } from 'date-fns-jalali';
+import { useLanguage } from '@/context/language-context';
 
 interface ReportsTabProps {
     building: Building;
@@ -21,28 +21,24 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     
     const chargeTo = expense.chargeTo || 'all';
     
-    // Determine if the unit is subject to the charge based on its resident status
     const isOwnerOccupied = !unit.tenantName;
     if (chargeTo === 'tenant' && isOwnerOccupied) return 0;
     if (chargeTo === 'owner' && !isOwnerOccupied) return 0;
 
-    // In 'custom' mode, the amount is assigned directly, only if the unit was selected.
     if (expense.distributionMethod === 'custom') {
         if (expense.applicableUnits?.includes(unit.id)) {
-            amount = expense.totalAmount; // This is now amount per unit
+            amount = expense.totalAmount;
         } else {
             amount = 0;
         }
     } else {
-        // For other methods, filter all units based on who is being charged for divisional calculations
         const applicableUnitsForDivision = allUnits.filter(u => {
             const unitIsOwnerOccupied = !u.tenantName;
             if (chargeTo === 'tenant') return !unitIsOwnerOccupied;
             if (chargeTo === 'owner') return unitIsOwnerOccupied;
-            return true; // 'all'
+            return true;
         });
 
-        // if the current unit is not in the division group, its amount is 0
         if (!applicableUnitsForDivision.some(u => u.id === unit.id)) return 0;
 
         switch (expense.distributionMethod) {
@@ -69,23 +65,21 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
 
     if (amount === 0) return 0;
     
-    // Round to nearest 500
     return Math.ceil(amount / 500) * 500;
 };
-
-
-const chargeToText = (chargeTo: ChargeTo) => {
-    switch(chargeTo) {
-        case 'owner': return 'فقط مالک';
-        case 'tenant': return 'فقط مستاجر';
-        default: return 'همه ساکنین';
-    }
-}
-
 
 export function ReportsTab({ building }: ReportsTabProps) {
     const [exportType, setExportType] = useState("values");
     const { toast } = useToast();
+    const { t } = useLanguage();
+
+    const chargeToText = (chargeTo: ChargeTo) => {
+        switch(chargeTo) {
+            case 'owner': return t('expensesTab.badges.chargeToOwner');
+            case 'tenant': return t('expensesTab.badges.chargeToTenant');
+            default: return t('expensesTab.badges.chargeToAll');
+        }
+    }
 
     const handleExport = () => {
         try {
@@ -119,8 +113,8 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             if (data.length === 0) {
                  toast({
-                    title: "خطا",
-                    description: "هیچ داده‌ای برای خروجی گرفتن وجود ندارد.",
+                    title: t('global.error'),
+                    description: t('reportsTab.noData'),
                     variant: "destructive"
                 });
                 return;
@@ -128,21 +122,21 @@ export function ReportsTab({ building }: ReportsTabProps) {
 
             const worksheet = XLSX.utils.json_to_sheet(data as any[]);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "گزارش هزینه ها");
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Expense Report");
             
             XLSX.writeFile(workbook, `${building.name}-report.xlsx`);
 
             toast({
-                title: "خروجی اکسل موفق",
-                description: `فایل اکسل برای ساختمان "${building.name}" با موفقیت ایجاد شد.`,
+                title: t('reportsTab.exportSuccessTitle'),
+                description: t('reportsTab.exportSuccessDesc', { buildingName: building.name }),
                 className: "bg-primary text-primary-foreground"
             });
 
         } catch (error) {
              console.error("Excel export failed:", error);
              toast({
-                title: "خطا در تهیه خروجی",
-                description: "مشکلی در ایجاد فایل اکسل پیش آمد. لطفا دوباره تلاش کنید.",
+                title: t('reportsTab.exportErrorTitle'),
+                description: t('reportsTab.exportErrorDesc'),
                 variant: "destructive"
              })
         }
@@ -151,29 +145,29 @@ export function ReportsTab({ building }: ReportsTabProps) {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>تهیه گزارش اکسل</CardTitle>
-                <CardDescription>از اطلاعات هزینه‌ها و واحدها خروجی اکسل تهیه کنید.</CardDescription>
+                <CardTitle>{t('reportsTab.title')}</CardTitle>
+                <CardDescription>{t('reportsTab.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-4">
-                    <Label className="font-semibold">نوع خروجی</Label>
+                    <Label className="font-semibold">{t('reportsTab.exportType')}</Label>
                     <RadioGroup defaultValue="values" value={exportType} onValueChange={setExportType}>
                         <div className="flex items-center space-x-2 space-x-reverse">
                             <RadioGroupItem value="values" id="r1" />
-                            <Label htmlFor="r1">فقط مقادیر محاسبه‌شده</Label>
+                            <Label htmlFor="r1">{t('reportsTab.exportValues')}</Label>
                         </div>
-                         <p className="text-xs text-muted-foreground pr-6">خروجی شامل داده‌های نهایی و بدون فرمول‌های اکسل خواهد بود. (توصیه شده)</p>
+                         <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportValuesDesc')}</p>
                         <div className="flex items-center space-x-2 space-x-reverse">
                             <RadioGroupItem value="formulas" id="r2" disabled />
-                            <Label htmlFor="r2">شامل فرمول‌های زنده اکسل (به زودی)</Label>
+                            <Label htmlFor="r2">{t('reportsTab.exportFormulas')}</Label>
                         </div>
-                        <p className="text-xs text-muted-foreground pr-6">خروجی شامل فرمول‌ها خواهد بود که محاسبات را در خود اکسل انجام می‌دهند.</p>
+                        <p className="text-xs text-muted-foreground px-6">{t('reportsTab.exportFormulasDesc')}</p>
 
                     </RadioGroup>
                 </div>
                 <Button onClick={handleExport} className="w-full md:w-auto flex items-center gap-2">
                     <Download size={20}/>
-                    <span>تهیه خروجی</span>
+                    <span>{t('reportsTab.exportButton')}</span>
                 </Button>
             </CardContent>
         </Card>

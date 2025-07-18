@@ -1,4 +1,3 @@
-
 "use client"
 
 import { useState, useMemo } from 'react';
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { format, getYear } from 'date-fns-jalali';
 import { faIR } from 'date-fns-jalali/locale';
+import { useLanguage } from '@/context/language-context';
 
 interface ExpensesTabProps {
     building: Building;
@@ -36,28 +36,24 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
     
     const chargeTo = expense.chargeTo || 'all';
     
-    // Determine if the unit is subject to the charge based on its resident status
     const isOwnerOccupied = !unit.tenantName;
     if (chargeTo === 'tenant' && isOwnerOccupied) return 0;
     if (chargeTo === 'owner' && !isOwnerOccupied) return 0;
 
-    // In 'custom' mode, the amount is assigned directly, only if the unit was selected.
     if (expense.distributionMethod === 'custom') {
         if (expense.applicableUnits?.includes(unit.id)) {
-            amount = expense.totalAmount; // This is now amount per unit
+            amount = expense.totalAmount;
         } else {
             amount = 0;
         }
     } else {
-        // For other methods, filter all units based on who is being charged for divisional calculations
         const applicableUnitsForDivision = allUnits.filter(u => {
             const unitIsOwnerOccupied = !u.tenantName;
             if (chargeTo === 'tenant') return !unitIsOwnerOccupied;
             if (chargeTo === 'owner') return unitIsOwnerOccupied;
-            return true; // 'all'
+            return true;
         });
 
-        // if the current unit is not in the division group, its amount is 0
         if (!applicableUnitsForDivision.some(u => u.id === unit.id)) return 0;
 
         switch (expense.distributionMethod) {
@@ -84,17 +80,9 @@ const getAmountPerUnit = (expense: Expense, unit: Unit, allUnits: Unit[]): numbe
 
     if (amount === 0) return 0;
     
-    // Round to nearest 500
     return Math.ceil(amount / 500) * 500;
 };
 
-const chargeToText = (chargeTo: ChargeTo) => {
-    switch(chargeTo) {
-        case 'owner': return 'فقط مالک';
-        case 'tenant': return 'فقط مستاجر';
-        default: return 'همه ساکنین';
-    }
-}
 
 export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const { addExpenseToBuilding, updateExpenseInBuilding, updateExpensePaymentStatus, deleteExpenseFromBuilding } = useBuildingData();
@@ -105,6 +93,15 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
     const [yearFilter, setYearFilter] = useState<string>("all");
     const [monthFilter, setMonthFilter] = useState<string>("all");
     const [showManagerExpenses, setShowManagerExpenses] = useState(false);
+    const { t, language } = useLanguage();
+
+    const chargeToText = (chargeTo: ChargeTo) => {
+        switch(chargeTo) {
+            case 'owner': return t('expensesTab.badges.chargeToOwner');
+            case 'tenant': return t('expensesTab.badges.chargeToTenant');
+            default: return t('expensesTab.badges.chargeToAll');
+        }
+    }
 
     const years = useMemo(() => {
         const expenseYears = building.expenses.map(e => getYear(new Date(e.date)).toString());
@@ -175,37 +172,41 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
         return expense.totalAmount;
     }
     
+    const formatNumber = (num: number) => {
+        return new Intl.NumberFormat(language === 'fa' ? 'fa-IR' : 'en-US').format(num);
+    }
+
     return (
         <Card>
             <CardHeader>
                 <div className="flex flex-wrap gap-4 justify-between items-center">
                     <div>
-                        <CardTitle>لیست هزینه‌ها</CardTitle>
-                        <CardDescription>هزینه‌های ثبت‌شده برای ساختمان را مشاهده و مدیریت کنید.</CardDescription>
+                        <CardTitle>{t('expensesTab.title')}</CardTitle>
+                        <CardDescription>{t('expensesTab.description')}</CardDescription>
                     </div>
                     <Button onClick={() => handleOpenAddDialog(null)} className="flex items-center gap-2">
                         <PlusCircle size={20} />
-                        <span>افزودن هزینه</span>
+                        <span>{t('expensesTab.addExpense')}</span>
                     </Button>
                 </div>
                  <div className="flex flex-wrap gap-4 items-center pt-4">
                     <SlidersHorizontal className="text-muted-foreground" />
-                    <Select value={yearFilter} onValueChange={setYearFilter}>
-                        <SelectTrigger className="w-[180px]"><SelectValue placeholder="فیلتر بر اساس سال" /></SelectTrigger>
+                    <Select value={yearFilter} onValueChange={setYearFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                        <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByYear')} /></SelectTrigger>
                         <SelectContent>
-                            {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? "همه سال‌ها" : new Intl.NumberFormat('fa-IR').format(parseInt(y))}</SelectItem>)}
+                            {years.map(y => <SelectItem key={y} value={y}>{y === "all" ? t('expensesTab.allYears') : formatNumber(parseInt(y))}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                     <Select value={monthFilter} onValueChange={setMonthFilter}>
-                        <SelectTrigger className="w-[180px]"><SelectValue placeholder="فیلتر بر اساس ماه" /></SelectTrigger>
+                     <Select value={monthFilter} onValueChange={setMonthFilter} dir={language === 'fa' ? 'rtl' : 'ltr'}>
+                        <SelectTrigger className="w-[180px]"><SelectValue placeholder={t('expensesTab.filterByMonth')} /></SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">همه ماه‌ها</SelectItem>
+                            <SelectItem value="all">{t('expensesTab.allMonths')}</SelectItem>
                             {Array.from({length: 12}, (_, i) => <SelectItem key={i+1} value={String(i+1)}>{format(new Date(2000, i, 1), 'MMMM', { locale: faIR })}</SelectItem>)}
                         </SelectContent>
                     </Select>
                     <div className="flex items-center space-x-2 space-x-reverse">
                         <UserCheck className="text-muted-foreground"/>
-                        <Label htmlFor="manager-expenses">پرداختی‌های مدیر</Label>
+                        <Label htmlFor="manager-expenses">{t('expensesTab.managerPayments')}</Label>
                         <Switch id="manager-expenses" checked={showManagerExpenses} onCheckedChange={setShowManagerExpenses} />
                     </div>
                 </div>
@@ -215,13 +216,13 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>شرح هزینه</TableHead>
-                                <TableHead>تاریخ</TableHead>
-                                <TableHead>مبلغ کل</TableHead>
+                                <TableHead>{t('expensesTab.table.description')}</TableHead>
+                                <TableHead>{t('expensesTab.table.date')}</TableHead>
+                                <TableHead>{t('expensesTab.table.totalAmount')}</TableHead>
                                 {building.units.map(unit => (
                                     <TableHead key={unit.id} className="text-center">{unit.name}</TableHead>
                                 ))}
-                                <TableHead className="text-center">عملیات</TableHead>
+                                <TableHead className="text-center">{t('expensesTab.table.actions')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -231,13 +232,13 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                         <div className="flex flex-col gap-1">
                                             <span>{expense.description}</span>
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="ml-1"/>پرداخت توسط مدیر</Badge>}
-                                                 <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="ml-1"/>{chargeToText(expense.chargeTo)}</Badge>
+                                                {expense.paidByManager && <Badge variant="secondary" className="w-fit text-xs"><UserCheck size={12} className="mx-1"/>{t('expensesTab.badges.paidByManager')}</Badge>}
+                                                 <Badge variant="outline" className="w-fit text-xs"><Users size={12} className="mx-1"/>{chargeToText(expense.chargeTo)}</Badge>
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>{format(new Date(expense.date), 'd MMMM yyyy', { locale: faIR })}</TableCell>
-                                    <TableCell>{Math.ceil(getTotalAmountForDisplay(expense)).toLocaleString('fa-IR')} تومان</TableCell>
+                                    <TableCell>{formatNumber(Math.ceil(getTotalAmountForDisplay(expense)))}</TableCell>
                                     {building.units.map(unit => {
                                         const amountPerUnit = getAmountPerUnit(expense, unit, building.units);
                                         const status = expense.paymentStatus[unit.id] || 'unpaid';
@@ -248,7 +249,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                                             <TableCell key={unit.id} className="text-center">
                                                 {isApplicable ? (
                                                     <div className="flex flex-col items-center gap-1">
-                                                        <span>{amountPerUnit.toLocaleString('fa-IR')}</span>
+                                                        <span>{formatNumber(amountPerUnit)}</span>
                                                          <PaymentStatusBadge 
                                                             status={status}
                                                             onClick={() => handleUpdateStatus(expense.id, unit.id, status)}
@@ -274,7 +275,7 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
                     </Table>
                 </div>
                 {filteredExpenses.length === 0 && (
-                     <div className="text-center py-10 text-muted-foreground">هیچ هزینه‌ای با فیلترهای انتخابی یافت نشد.</div>
+                     <div className="text-center py-10 text-muted-foreground">{t('expensesTab.noExpensesFound')}</div>
                 )}
             </CardContent>
             <AddExpenseDialog
@@ -287,14 +288,14 @@ export function ExpensesTab({ building, onDataChange }: ExpensesTabProps) {
             <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                    <AlertDialogTitle>آیا از حذف این هزینه مطمئن هستید؟</AlertDialogTitle>
+                    <AlertDialogTitle>{t('expensesTab.confirmDeleteTitle')}</AlertDialogTitle>
                     <AlertDialogDescription>
-                        این عمل قابل بازگشت نیست. با حذف این هزینه، تمام اطلاعات مربوط به آن برای همیشه پاک خواهد شد.
+                        {t('expensesTab.confirmDeleteDesc')}
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                    <AlertDialogCancel>لغو</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDeleteExpense} className="bg-destructive hover:bg-destructive/90">حذف</AlertDialogAction>
+                    <AlertDialogCancel>{t('global.cancel')}</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDeleteExpense} className="bg-destructive hover:bg-destructive/90">{t('global.delete')}</AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>

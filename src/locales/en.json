@@ -1,0 +1,157 @@
+{
+    "global": {
+        "appName": "Building Accountant",
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "error": "Error",
+        "success": "Success",
+        "loading": "Loading...",
+        "optional": "(Optional)"
+    },
+    "header": {
+        "languageToggle": "FA / EN"
+    },
+    "home": {
+        "myBuildings": "My Buildings",
+        "newBuilding": "New Building",
+        "loadingBuildings": "Loading buildings...",
+        "noBuildingsFound": "No buildings found",
+        "noBuildingsCTA": "Create a new building to get started."
+    },
+    "createBuildingDialog": {
+        "title": "Create New Building",
+        "description": "Enter the new building's information to start managing expenses.",
+        "nameLabel": "Building Name",
+        "namePlaceholder": "e.g., Spring Tower",
+        "unitsLabel": "Number of Units",
+        "errorNameRequired": "Building name cannot be empty.",
+        "errorUnitsRequired": "Number of units must be at least 1."
+    },
+    "buildingList": {
+        "cardDescription": "Collection of building information and expenses",
+        "units": "Units",
+        "expenses": "expenses recorded",
+        "viewDashboard": "View Dashboard"
+    },
+    "dashboard": {
+        "title": "Dashboard for managing building expenses and units",
+        "buildingNotFound": "Building Not Found",
+        "buildingNotFoundDesc": "This building may have been deleted or the address is incorrect.",
+        "backToBuildings": "Back to buildings list",
+        "tabs": {
+            "expenses": "Expenses",
+            "units": "Units",
+            "reports": "Reports"
+        }
+    },
+    "unitsTab": {
+        "title": "Manage Units",
+        "description": "View and edit your building's units.",
+        "addUnit": "Add Unit",
+        "table": {
+            "name": "Unit Name",
+            "area": "Area (m²)",
+            "occupants": "Occupants",
+            "ownerName": "Owner Name",
+            "tenantName": "Tenant Name",
+            "actions": "Actions"
+        }
+    },
+    "addUnitDialog": {
+        "addTitle": "Add New Unit",
+        "editTitle": "Edit Unit",
+        "description": "Enter or edit the unit information.",
+        "nameLabel": "Unit Name",
+        "areaLabel": "Area (m²)",
+        "occupantsLabel": "Number of Occupants",
+        "ownerNameLabel": "Owner Name",
+        "tenantNameLabel": "Tenant Name",
+        "errorNameRequired": "Unit name and owner name cannot be empty."
+    },
+    "expensesTab": {
+        "title": "Expenses List",
+        "description": "View and manage the expenses recorded for the building.",
+        "addExpense": "Add Expense",
+        "filterByYear": "Filter by year",
+        "allYears": "All Years",
+        "filterByMonth": "Filter by month",
+        "allMonths": "All Months",
+        "managerPayments": "Manager's Payments",
+        "noExpensesFound": "No expenses found with the selected filters.",
+        "confirmDeleteTitle": "Are you sure you want to delete this expense?",
+        "confirmDeleteDesc": "This action cannot be undone. This will permanently delete the expense and all its related data.",
+        "table": {
+            "description": "Description",
+            "date": "Date",
+            "totalAmount": "Total Amount",
+            "actions": "Actions"
+        },
+        "badges": {
+            "paidByManager": "Paid by manager",
+            "chargeToAll": "All Residents",
+            "chargeToOwner": "Owner Only",
+            "chargeToTenant": "Tenant Only"
+        }
+    },
+    "paymentStatus": {
+        "paid": "Paid",
+        "unpaid": "Unpaid"
+    },
+    "addExpenseDialog": {
+        "addTitle": "Add New Expense",
+        "editTitle": "Edit Expense",
+        "description": "Enter the expense information.",
+        "expenseDescription": "Expense Description",
+        "descriptionPlaceholder": "Select or enter description...",
+        "totalAmount": "Total Amount",
+        "amountPerUnit": "Amount Per Unit",
+        "currency": "(USD)",
+        "date": "Date",
+        "selectDate": "Select a date",
+        "distributionMethod": "Distribution Method",
+        "selectDistributionMethod": "Select distribution method...",
+        "methods": {
+            "unit_count": "By number of units",
+            "occupants": "By number of occupants",
+            "area": "By area",
+            "custom": "Assign to each unit"
+        },
+        "customAllocation": {
+            "description": "The entered amount is assigned to each selected unit as is, without division.",
+            "selectAll": "Select All"
+        },
+        "chargeTo": "Charge To",
+        "chargeToOptions": {
+            "all": "All Residents",
+            "owner": "Owner Only",
+            "tenant": "Tenant Only"
+        },
+        "paidByManager": "Paid by Manager",
+        "errorInvalid": "Description and amount must be valid.",
+        "errorCustomNoUnits": "In custom method, at least one unit must be selected."
+    },
+    "suggestedExpenses": {
+        "monthly_charge": "Monthly Charge",
+        "water_bill": "Water Bill",
+        "electricity_bill": "Electricity Bill",
+        "gas_bill": "Gas Bill",
+        "cleaning": "Cleaning"
+    },
+    "reportsTab": {
+        "title": "Generate Excel Report",
+        "description": "Export expense and unit data to an Excel file.",
+        "exportType": "Export Type",
+        "exportValues": "Calculated values only",
+        "exportValuesDesc": "The output will contain final data without Excel formulas. (Recommended)",
+        "exportFormulas": "Include live Excel formulas (Coming soon)",
+        "exportFormulasDesc": "The output will include formulas that perform calculations within Excel itself.",
+        "exportButton": "Generate Export",
+        "noData": "There is no data to export.",
+        "exportSuccessTitle": "Excel Export Successful",
+        "exportSuccessDesc": "Excel file for building \"{buildingName}\" was created successfully.",
+        "exportErrorTitle": "Export Error",
+        "exportErrorDesc": "There was a problem creating the Excel file. Please try again."
+    }
+}

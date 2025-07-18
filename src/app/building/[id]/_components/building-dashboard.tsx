@@ -7,8 +7,9 @@ import { ExpensesTab } from "./expenses-tab";
 import { UnitsTab } from "./units-tab";
 import { ReportsTab } from "./reports-tab";
 import Link from "next/link";
-import { ArrowRight, Building2 } from "lucide-react";
+import { ArrowRight, Building2, ArrowLeft } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLanguage } from "@/context/language-context";
 
 interface BuildingDashboardProps {
   buildingId: string;
@@ -17,6 +18,7 @@ interface BuildingDashboardProps {
 export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
   const { getBuildingById, loading } = useBuildingData();
   const [building, setBuilding] = useState<Building | null | undefined>(undefined);
+  const { t, language } = useLanguage();
 
   const fetchBuilding = useCallback(() => {
     const foundBuilding = getBuildingById(buildingId);
@@ -32,6 +34,8 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
   const handleDataChange = () => {
     fetchBuilding();
   };
+  
+  const ArrowIcon = language === 'fa' ? ArrowRight : ArrowLeft;
 
   if (loading || building === undefined) {
     return (
@@ -46,14 +50,14 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
   if (!building) {
     return (
       <div className="text-center py-16">
-        <h2 className="text-2xl font-bold text-destructive">ساختمان یافت نشد</h2>
+        <h2 className="text-2xl font-bold text-destructive">{t('dashboard.buildingNotFound')}</h2>
         <p className="text-muted-foreground mt-2">
-          ممکن است این ساختمان حذف شده باشد یا آدرس اشتباه باشد.
+          {t('dashboard.buildingNotFoundDesc')}
         </p>
         <Button asChild variant="link" className="mt-4">
           <Link href="/" className="flex items-center gap-2">
-            <ArrowRight size={16} />
-            <span>بازگشت به لیست ساختمان‌ها</span>
+            <ArrowIcon size={16} />
+            <span>{t('dashboard.backToBuildings')}</span>
           </Link>
         </Button>
       </div>
@@ -67,14 +71,14 @@ export function BuildingDashboard({ buildingId }: BuildingDashboardProps) {
         <h1 className="text-4xl font-bold font-headline text-primary">{building.name}</h1>
       </div>
       <p className="text-lg text-muted-foreground mb-8">
-        داشبورد مدیریت هزینه‌ها و واحدهای ساختمان
+        {t('dashboard.title')}
       </p>
 
       <Tabs defaultValue="expenses" className="w-full">
         <TabsList className="grid w-full grid-cols-3 bg-muted/50">
-          <TabsTrigger value="expenses">هزینه‌ها</TabsTrigger>
-          <TabsTrigger value="units">واحدها</TabsTrigger>
-          <TabsTrigger value="reports">گزارش‌ها</TabsTrigger>
+          <TabsTrigger value="expenses">{t('dashboard.tabs.expenses')}</TabsTrigger>
+          <TabsTrigger value="units">{t('dashboard.tabs.units')}</TabsTrigger>
+          <TabsTrigger value="reports">{t('dashboard.tabs.reports')}</TabsTrigger>
         </TabsList>
         <TabsContent value="expenses">
           <ExpensesTab building={building} onDataChange={handleDataChange} />
