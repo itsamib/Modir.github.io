@@ -26,7 +26,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { useLanguage } from '@/context/language-context';
 
-type ExpenseCategory = 'monthly_charge' | 'utility_bill' | 'cleaning' | 'repairs' | 'other';
+type ExpenseCategory = 'monthly_charge' | 'water_bill' | 'electricity_bill' | 'gas_bill' | 'cleaning' | 'repairs' | 'other';
 
 interface AddExpenseDialogProps {
   isOpen: boolean;
@@ -42,7 +42,9 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
     
     const expenseCategories = useMemo(() => [
         { value: 'monthly_charge', key: 'addExpenseDialog.categories.monthly_charge', label: t('addExpenseDialog.categories.monthly_charge') },
-        { value: 'utility_bill', key: 'addExpenseDialog.categories.utility_bill', label: t('addExpenseDialog.categories.utility_bill') },
+        { value: 'water_bill', key: 'addExpenseDialog.categories.water_bill', label: t('addExpenseDialog.categories.water_bill') },
+        { value: 'electricity_bill', key: 'addExpenseDialog.categories.electricity_bill', label: t('addExpenseDialog.categories.electricity_bill') },
+        { value: 'gas_bill', key: 'addExpenseDialog.categories.gas_bill', label: t('addExpenseDialog.categories.gas_bill') },
         { value: 'cleaning', key: 'addExpenseDialog.categories.cleaning', label: t('addExpenseDialog.categories.cleaning') },
         { value: 'repairs', key: 'addExpenseDialog.categories.repairs', label: t('addExpenseDialog.categories.repairs') },
         { value: 'other', key: 'addExpenseDialog.categories.other', label: t('addExpenseDialog.categories.other') },
@@ -162,7 +164,7 @@ export function AddExpenseDialog({ isOpen, onClose, onSave, units, expense }: Ad
                 <Label className="text-right rtl:text-left text-xs pt-3">{t('addExpenseDialog.expenseDescription')}</Label>
                 <div className="col-span-3 space-y-2">
                     <RadioGroup value={category} onValueChange={(v) => setCategory(v as ExpenseCategory)} dir={direction}>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                         {expenseCategories.map(cat => (
                             <div key={cat.value} className="flex items-center space-x-2 rtl:space-x-reverse">
                                 <RadioGroupItem value={cat.value} id={`cat-${cat.value}`} />

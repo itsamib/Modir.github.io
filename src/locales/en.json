@@ -174,7 +174,9 @@
         },
         "categories": {
             "monthly_charge": "Monthly Charge",
-            "utility_bill": "Utility Bill",
+            "water_bill": "Water Bill",
+            "electricity_bill": "Electricity Bill",
+            "gas_bill": "Gas Bill",
             "cleaning": "Cleaning",
             "repairs": "Repairs",
             "other": "Other"

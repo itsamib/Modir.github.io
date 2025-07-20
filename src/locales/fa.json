@@ -174,7 +174,9 @@
         },
         "categories": {
             "monthly_charge": "شارژ ماهیانه",
-            "utility_bill": "قبض خدماتی",
+            "water_bill": "قبض آب",
+            "electricity_bill": "قبض برق",
+            "gas_bill": "قبض گاز",
             "cleaning": "نظافت",
             "repairs": "تعمیرات",
             "other": "سایر"
