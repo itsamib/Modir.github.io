@@ -7,6 +7,12 @@ on:
     branches:
       - main # شاخه‌ای که می‌خواهید تغییرات آن دیپلوی شود
 
+# این مجوزها برای اینکه GitHub Actions بتواند به ریپازیتوری شما Push کند، ضروری است.
+permissions:
+  contents: write # اجازه نوشتن در ریپازیتوری
+  pages: write   # اجازه مدیریت GitHub Pages (برای اطمینان)
+  id-token: write # برای امنیت بیشتر در آینده (استفاده از OIDC)
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest # محیط اجرای Job
@@ -14,6 +20,9 @@ jobs:
     steps:
       - name: Checkout repository # دریافت کد ریپازیتوری
         uses: actions/checkout@v4
+        # این خط برای جلوگیری از مشکلات احتمالی با اعتبارسنجی Git در برخی سناریوها مفید است.
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js # تنظیم Node.js
         uses: actions/setup-node@v4
@@ -31,8 +40,6 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }} # توکن گیت‌هاب برای دسترسی
           publish_dir: ./out # پوشه‌ای که Next.js خروجی استاتیک را در آن قرار می‌دهد
-          # اگر می‌خواهید به شاخه gh-pages دیپلوی کنید، publish_branch را تنظیم کنید:
-          # publish_branch: gh-pages
-          # اگر می‌خواهید به شاخه اصلی (main) دیپلوی کنید، این خط را حذف کنید
-          # و مطمئن شوید که GitHub Pages شما از شاخه main و پوشه / (root) سرویس می‌دهد.
-          # در این مورد، چون شما از main سرویس می‌دهید، نیازی به publish_branch نیست.
+          # **این خط بسیار مهم است:** به اکشن می‌گوید که به شاخه 'main' پوش کند.
+          # چون GitHub Pages شما از شاخه 'main' سرویس می‌دهد.
+          publish_branch: main
