@@ -5,41 +5,39 @@ name: Deploy Next.js PWA to GitHub Pages
 on:
   push:
     branches:
-      - main # شاخه‌ای که می‌خواهید تغییرات آن دیپلوی شود
+      - main # این Workflow هر بار که کدی به شاخه main پوش شود، اجرا می‌شود.
 
-# این مجوزها برای اینکه GitHub Actions بتواند به ریپازیتوری شما Push کند، ضروری است.
 permissions:
-  contents: write # اجازه نوشتن در ریپازیتوری
-  pages: write   # اجازه مدیریت GitHub Pages (برای اطمینان)
-  id-token: write # برای امنیت بیشتر در آینده (استفاده از OIDC)
+  contents: write # اجازه نوشتن در ریپازیتوری برای اکشن
+  pages: write   # اجازه مدیریت GitHub Pages
+  id-token: write # برای امنیت بیشتر (OpenID Connect)
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest # محیط اجرای Job
+    runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository # دریافت کد ریپازیتوری
+      - name: Checkout repository
         uses: actions/checkout@v4
-        # این خط برای جلوگیری از مشکلات احتمالی با اعتبارسنجی Git در برخی سناریوها مفید است.
         with:
           persist-credentials: false
 
-      - name: Setup Node.js # تنظیم Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # از نسخه Node.js مناسب برای پروژه خود استفاده کنید
+          node-version: '20'
 
-      - name: Install dependencies # نصب وابستگی‌ها
+      - name: Install dependencies
         run: npm install
 
-      - name: Build Next.js project # Build کردن پروژه Next.js
+      - name: Build Next.js project
         run: npm run build
 
-      - name: Deploy to GitHub Pages # دیپلوی به GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3 # اکشن محبوب برای دیپلوی به GH Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }} # توکن گیت‌هاب برای دسترسی
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./out # پوشه‌ای که Next.js خروجی استاتیک را در آن قرار می‌دهد
-          # **این خط بسیار مهم است:** به اکشن می‌گوید که به شاخه 'main' پوش کند.
-          # چون GitHub Pages شما از شاخه 'main' سرویس می‌دهد.
-          publish_branch: main
+          # **این خط حیاتی است:** به اکشن می‌گوید که خروجی را به شاخه 'gh-pages' پوش کند.
+          # GitHub Pages شما باید از همین شاخه 'gh-pages' سرویس دهد.
+          publish_branch: gh-pages
