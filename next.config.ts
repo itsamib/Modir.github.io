@@ -1,4 +1,6 @@
-import type {NextConfig} from 'next';
+// next.config.js
+
+import type { NextConfig } from 'next';
 import withPWAInit from "@ducanh2912/next-pwa";
 
 const withPWA = withPWAInit({
@@ -6,15 +8,19 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
-  // اضافه کردن این تنظیمات برای GitHub Pages
-  runtimeCaching: [],
+  runtimeCaching: [], // می‌توانید اینجا قوانین کشینگ خود را اضافه کنید
   buildExcludes: [/middleware-manifest.json$/],
 });
 
 const nextConfig: NextConfig = {
   output: 'export', // فعال سازی خروجی استاتیک
-  basePath: process.env.NODE_ENV === 'production' ? '/my-firebase-app-' : '', // نام ریپوی شما
-  trailingSlash: true,
+
+  // **اینجا اصلاح شد:** basePath باید دقیقاً با نام ریپازیتوری شما مطابقت داشته باشد.
+  // نام ریپازیتوری شما: Modir.github.io
+  basePath: process.env.NODE_ENV === 'production' ? '/Modir.github.io' : '',
+
+  trailingSlash: true, // اضافه کردن اسلش انتهایی به URLها
+
   images: {
     unoptimized: true, // غیرفعال کردن بهینه‌سازی تصاویر برای خروجی استاتیک
     remotePatterns: [
@@ -25,10 +31,10 @@ const nextConfig: NextConfig = {
     ],
   },
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, // نادیده گرفتن خطاهای TypeScript در زمان Build
   },
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: true, // نادیده گرفتن خطاهای ESLint در زمان Build
   },
 };
 
