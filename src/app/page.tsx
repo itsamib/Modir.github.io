@@ -1,5 +1,5 @@
-
-"use client"
+// src/app/page.tsx
+"use client"; // این خط برای کامپوننت‌های سمت کلاینت ضروری است
 
 import { useState, useEffect, useRef } from "react";
 import { useBuildingData } from "@/hooks/use-building-data";
@@ -80,14 +80,14 @@ export default function Home() {
                     className: "bg-primary text-primary-foreground"
                 });
             } else {
-                 toast({
+                toast({
                     title: t('global.error'),
                     description: message,
                     variant: "destructive"
                 });
             }
-             setIsImportAlertOpen(false);
-             setFileToImport(null);
+            setIsImportAlertOpen(false);
+            setFileToImport(null);
         })
     } else {
         const reader = new FileReader();
@@ -171,13 +171,13 @@ export default function Home() {
               accept="application/json, .xlsx, .xls"
               onChange={handleFileChange}
             />
-             <Button onClick={handleImportClick} variant="outline" className="flex items-center gap-2">
+            <Button onClick={handleImportClick} variant="outline" className="flex items-center gap-2">
               <Upload size={20} />
               <span>{t('home.importData')}</span>
             </Button>
             <Button onClick={handleGlobalExport} variant="outline" className="flex items-center gap-2">
-                <Download size={20} />
-                <span>{t('home.exportAll')}</span>
+              <Download size={20} />
+              <span>{t('home.exportAll')}</span>
             </Button>
             <Button onClick={() => setIsCreateDialogOpen(true)} className="flex items-center gap-2">
               <PlusCircle size={20} />
@@ -187,7 +187,7 @@ export default function Home() {
         </div>
         
         {loading ? (
-           <p>{t('home.loadingBuildings')}</p>
+            <p>{t('home.loadingBuildings')}</p>
         ) : buildings.length > 0 ? (
           <BuildingList buildings={buildings} />
         ) : (
@@ -204,19 +204,19 @@ export default function Home() {
         onClose={() => setIsCreateDialogOpen(false)}
         onSave={handleAddBuilding}
       />
-       <AlertDialog open={isImportAlertOpen} onOpenChange={setIsImportAlertOpen}>
-          <AlertDialogContent>
-              <AlertDialogHeader>
-              <AlertDialogTitle>{t('home.importConfirmTitle')}</AlertDialogTitle>
-              <AlertDialogDescription>
-                  {t('home.importConfirmDesc')}
-              </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setFileToImport(null)}>{t('global.cancel')}</AlertDialogCancel>
-              <AlertDialogAction onClick={handleConfirmImport} className="bg-destructive hover:bg-destructive/90">{t('home.importConfirmAction')}</AlertDialogAction>
-              </AlertDialogFooter>
-          </AlertDialogContent>
+      <AlertDialog open={isImportAlertOpen} onOpenChange={setIsImportAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('home.importConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('home.importConfirmDesc')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setFileToImport(null)}>{t('global.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmImport} className="bg-destructive hover:bg-destructive/90">{t('home.importConfirmAction')}</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
       </AlertDialog>
     </div>
   );

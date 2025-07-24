@@ -44,7 +44,7 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  // **اضافه کردن صریح آیکون‌ها برای حل مشکل favicon.ico**
+  // اضافه کردن صریح آیکون‌ها برای حل مشکل favicon.ico
   // Next.js basePath را به این مسیر اضافه می‌کند.
   icons: {
     icon: '/favicon.ico', // فرض بر این است که favicon.ico در پوشه `public` شما قرار دارد

@@ -8,15 +8,17 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
+  // این تنظیمات برای GitHub Pages و PWA ضروری هستند
   runtimeCaching: [], // می‌توانید اینجا قوانین کشینگ خود را اضافه کنید
   buildExcludes: [/middleware-manifest.json$/],
 });
 
 const nextConfig: NextConfig = {
-  output: 'export', // فعال سازی خروجی استاتیک
+  // فعال سازی خروجی استاتیک برای GitHub Pages
+  output: 'export',
 
-  // **اینجا اصلاح شد:** basePath باید دقیقاً با نام ریپازیتوری شما مطابقت داشته باشد.
-  // نام ریپازیتوری شما: Modir.github.io
+  // این خط برای GitHub Pages که پروژه در یک ساب‌دایرکتوری میزبانی می‌شود، حیاتی است.
+  // 'Modir.github.io' باید دقیقاً با نام ریپازیتوری شما مطابقت داشته باشد.
   basePath: process.env.NODE_ENV === 'production' ? '/Modir.github.io' : '',
 
   trailingSlash: true, // اضافه کردن اسلش انتهایی به URLها
