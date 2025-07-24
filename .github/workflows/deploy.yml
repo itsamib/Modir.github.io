@@ -1,22 +1,38 @@
-name: Deploy to GitHub Pages
+# .github/workflows/deploy.yml
+
+name: Deploy Next.js PWA to GitHub Pages
 
 on:
   push:
     branches:
-      - main
+      - main # شاخه‌ای که می‌خواهید تغییرات آن دیپلوی شود
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  build-and-deploy:
+    runs-on: ubuntu-latest # محیط اجرای Job
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository # دریافت کد ریپازیتوری
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js # تنظیم Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      - run: npm install
-      - run: npm run build
-      - name: Deploy to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
+          node-version: '20' # از نسخه Node.js مناسب برای پروژه خود استفاده کنید
+
+      - name: Install dependencies # نصب وابستگی‌ها
+        run: npm install
+
+      - name: Build Next.js project # Build کردن پروژه Next.js
+        run: npm run build
+
+      - name: Deploy to GitHub Pages # دیپلوی به GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3 # اکشن محبوب برای دیپلوی به GH Pages
         with:
-          folder: out
-          branch: gh-pages
+          github_token: ${{ secrets.GITHUB_TOKEN }} # توکن گیت‌هاب برای دسترسی
+          publish_dir: ./out # پوشه‌ای که Next.js خروجی استاتیک را در آن قرار می‌دهد
+          # اگر می‌خواهید به شاخه gh-pages دیپلوی کنید، publish_branch را تنظیم کنید:
+          # publish_branch: gh-pages
+          # اگر می‌خواهید به شاخه اصلی (main) دیپلوی کنید، این خط را حذف کنید
+          # و مطمئن شوید که GitHub Pages شما از شاخه main و پوشه / (root) سرویس می‌دهد.
+          # در این مورد، چون شما از main سرویس می‌دهید، نیازی به publish_branch نیست.
